@@ -10,15 +10,11 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
     steps:
-      - name: Set up the repo
-        uses: tree-sitter/parser-setup-action@v1.1
-        with:
-          node-version: ${{vars.NODE_VERSION}}
+      - uses: actions/checkout@v4
+      - name: Set up tree sitter
+        uses: tree-sitter/setup-action/cli@v1
       - name: Run tests
-        uses: tree-sitter/parser-test-action@v1.2
-        with:
-          test-library: ${{runner.os == 'Linux'}}
-          corpus-files: corpus/*
+        uses: tree-sitter/parser-test-action@v2
 
   # chez:
   #   runs-on: ubuntu-latest
@@ -34,15 +30,12 @@ jobs:
   sicp:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 14
-      - run: npm install
+      - uses: actions/checkout@v4
+      - name: Set up tree sitter
+        uses: tree-sitter/setup-action/cli@v1
       - name: Download sicp code
         run: |
           mkdir -p sicp && cd sicp
           curl https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/code/allcode.tar.gz -O
           tar xvf allcode.tar.gz
-      - run: npx tree-sitter parse sicp/*.scm -qt
-
+      - run: tree-sitter parse sicp/*.scm -qt
