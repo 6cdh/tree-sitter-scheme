@@ -16,7 +16,7 @@ const common = {
   line_ending: /[\n\r\u{2028}\u{0085}]|(\r\n)|(\r\u{0085})/,
   any_char: /.|[\r\n\u{85}\u{2028}\u{2029}]/,
 
-  symbol_element: /[^ \r\n\t\f\v\p{Zs}\p{Zl}\p{Zp}#;"'`,(){}\[\]\\|]/,
+  symbol_element: /[^ \r\n\t\f\v\p{Zs}\p{Zl}\p{Zp}#;"'`,\(\)\{\}\[\]\\\|]/,
 };
 
 const r5rs = {
@@ -58,14 +58,15 @@ const r6rs = {
         /x[0-9a-fA-F]+/,
         common.any_char)),
   escape_sequence:
-    choice(
-      /\\[abtnvfr"\\]/,
-      /\\x[0-9a-fA-F]+;/,
-      seq(
-        "\\",
-        common.intra_whitespace,
-        common.line_ending,
-        common.intra_whitespace)),
+    seq(
+      "\\",
+      choice(
+        /[abtnvfr"\\]/,
+        /x[0-9a-fA-F]+;/,
+        seq(
+          common.intra_whitespace,
+          common.line_ending,
+          common.intra_whitespace))),
 };
 
 const r7rs = {
@@ -106,7 +107,7 @@ const r7rs = {
       "|",
       repeat(
         choice(
-          /[^|\\]+/,
+          /[^\|\\]+/,
           /\\[xX][0-9a-fA-F]+;/,
           /\\[abtnr]/,
           "\\|")),
