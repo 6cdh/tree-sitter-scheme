@@ -8,14 +8,14 @@ Scheme grammar for tree-sitter.
 
 * With R7RS support, a single `|` can no longer appears in the middle of an identifier.
 * The nodes `directive` no longer contain sub nodes `symbol`. Now it's a single node.
-* some extensions added, see below
+* some extensions added, see below.
 
 ## Status
 
 ~~tree-sitter-scheme should work on a superset of Scheme.~~
 
-Different Implementations might have conflict grammar. I am not sure if I should support
-them. If you need some implementation-specific features, please open an issue, then I will consider support it.
+Different Implementations might have conflicting grammars. I am not sure if I should support
+them. If you need some implementation-specific features, please open an issue, then I will consider supporting it.
 
 current status:
 
@@ -42,7 +42,7 @@ Please open an issue to let me know it's really used if you want to add new exte
 
 See [nodes.md](./nodes.md) for all visible nodes.
 
-This parser don't parse language constructs. Instead, it parse code as lists.
+This parser doesn't parse language constructs. Instead, it parses code as lists.
 
 If you want language constructs support, use custom queries (see [#5](https://github.com/6cdh/tree-sitter-scheme/issues/5)), also see [thchha/tree-sitter-scheme](https://gitlab.com/thchha/tree-sitter-scheme).
 
