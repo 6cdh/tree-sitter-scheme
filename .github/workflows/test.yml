@@ -14,7 +14,7 @@ jobs:
       - name: Set up tree sitter
         uses: tree-sitter/setup-action/cli@v1
       - name: Run tests
-        uses: tree-sitter/parser-test-action@v2
+        uses: tree-sitter test
 
   # chez:
   #   runs-on: ubuntu-latest
