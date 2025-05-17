@@ -16,7 +16,7 @@ jobs:
         with:
           tree-sitter-ref: v0.24.7
       - name: Run tests
-        uses: tree-sitter test
+        run: tree-sitter test
 
   # chez:
   #   runs-on: ubuntu-latest
