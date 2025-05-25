@@ -6,15 +6,15 @@ Scheme grammar for tree-sitter.
 
 ## Recent News
 
-* With R7RS support, a single `|` can no longer appears in the middle of an identifier.
-* The nodes `directive` no longer contain sub nodes `symbol`. Now it's a single node.
-* some extensions added, see below.
+* With R7RS support, a single `|` can no longer appear in the middle of an identifier.
+* The node `directive` no longer contains the sub node `symbol`. It is now a single node.
+* Some extensions were added, see below.
 
 ## Status
 
 ~~tree-sitter-scheme should work on a superset of Scheme.~~
 
-Different Implementations might have conflicting grammars. I am not sure if I should support
+Different implementations might have conflicting grammars. I am not sure if I should support
 them. If you need some implementation-specific features, please open an issue, then I will consider supporting it.
 
 current status:
