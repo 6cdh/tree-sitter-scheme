@@ -56,6 +56,7 @@ const r6rs = {
         "linefeed", "newline", "vtab", "page",
         "return", "esc", "space", "delete",
         /x[0-9a-fA-F]+/,
+        /u[0-9a-fA-F]+/,
         common.any_char)),
   escape_sequence:
     seq(
