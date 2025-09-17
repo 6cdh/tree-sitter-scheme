@@ -20,6 +20,8 @@ tree-sitter test
 
 If you dont't use nix, you should follow the [official setup](https://tree-sitter.github.io/tree-sitter/creating-parsers) to configure the dev environment.
 
+Also remember to use project specific tree-sitter `./node_modules/.bin/tree-sitter`.
+
 ## Todo
 
 * check the tracking issues

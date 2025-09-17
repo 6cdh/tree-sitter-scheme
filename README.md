@@ -28,6 +28,7 @@ current status:
   * [x] keyword `#:symbol`
   * [x] escape sequence in string `\` + any character
   * [x] characters `#\bel`, `#\ls`, `#\nel`, `#\rubout`, `#\vt`
+  * [x] character `#\u[A-Fa-f0-9]+`
 
 Please open an issue to let me know it's really used if you want to add new extensions.
 
@@ -37,6 +38,7 @@ Please open an issue to let me know it's really used if you want to add new exte
   * [ ] Chez Scheme ([#1](https://github.com/6cdh/tree-sitter-scheme/issues/1))
   * [ ] Chicken Scheme ([#3](https://github.com/6cdh/tree-sitter-scheme/issues/3))
   * [ ] Guile Scheme ([#7](https://github.com/6cdh/tree-sitter-scheme/issues/7))
+  * [ ] Steel Scheme ([#17](https://github.com/6cdh/tree-sitter-scheme/issues/17))
 
 ## Usage
 
