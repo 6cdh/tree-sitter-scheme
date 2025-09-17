@@ -32,9 +32,11 @@ character
 #\nel
 #\rubout
 #\vt
+#\u03BB
 
 ---
 (program
+  (character)
   (character)
   (character)
   (character)

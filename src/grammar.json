@@ -12002,6 +12002,10 @@
                   },
                   {
                     "type": "PATTERN",
+                    "value": "u[0-9a-fA-F]+"
+                  },
+                  {
+                    "type": "PATTERN",
                     "value": ".|[\\r\\n\\u{85}\\u{2028}\\u{2029}]"
                   }
                 ]
