@@ -1,4 +1,4 @@
-"""Scheme grammar for tree-sitter"""
+"""Scheme parser for tree-sitter"""
 
 from importlib.resources import files as _files
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tree-sitter-scheme"
-description = "Scheme grammar for tree-sitter"
+description = "Scheme parser for tree-sitter"
 version = "0.24.7"
 keywords = ["incremental", "parsing", "tree-sitter", "scheme"]
 classifiers = [

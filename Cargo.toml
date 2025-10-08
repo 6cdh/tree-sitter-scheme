@@ -1,6 +1,6 @@
 [package]
 name = "tree-sitter-scheme"
-description = "Scheme grammar for tree-sitter"
+description = "Scheme parser for tree-sitter"
 version = "0.24.7"
 authors = ["6cdh"]
 license = "MIT"

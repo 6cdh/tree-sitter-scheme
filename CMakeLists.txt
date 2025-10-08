@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 project(tree-sitter-scheme
         VERSION "0.24.7"
-        DESCRIPTION "Scheme grammar for tree-sitter"
+        DESCRIPTION "Scheme parser for tree-sitter"
         HOMEPAGE_URL "https://github.com/tree-sitter/tree-sitter-scheme"
         LANGUAGES C)
 

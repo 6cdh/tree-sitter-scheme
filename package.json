@@ -1,7 +1,7 @@
 {
   "name": "tree-sitter-scheme",
   "version": "0.24.7",
-  "description": "Tree-sitter grammar for Scheme",
+  "description": "Tree-sitter parser for Scheme",
   "main": "bindings/node",
   "types": "bindings/node",
   "scripts": {

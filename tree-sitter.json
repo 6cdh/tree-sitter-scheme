@@ -14,7 +14,7 @@
   "metadata": {
     "version": "0.24.7",
     "license": "MIT",
-    "description": "Tree-sitter grammar for Scheme",
+    "description": "Tree-sitter parser for Scheme",
     "authors": [
       {
         "name": "6cdh"
