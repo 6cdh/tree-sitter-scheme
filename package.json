@@ -1,5 +1,5 @@
 {
-  "name": "tree-sitter-scheme",
+  "name": "@6cdh/tree-sitter-scheme",
   "version": "0.24.7-1",
   "description": "Tree-sitter parser for Scheme",
   "main": "bindings/node",

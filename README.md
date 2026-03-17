@@ -1,6 +1,6 @@
 # tree-sitter-scheme
 
-[![Build/test](https://github.com/6cdh/tree-sitter-scheme/workflows/Build/test/badge.svg)](https://github.com/6cdh/tree-sitter-scheme/actions/workflows/test.yml) [![Crates.io Version](https://img.shields.io/crates/v/tree-sitter-scheme)](https://crates.io/crates/tree-sitter-scheme)
+[![Build/test](https://github.com/6cdh/tree-sitter-scheme/workflows/Build/test/badge.svg)](https://github.com/6cdh/tree-sitter-scheme/actions/workflows/test.yml) [![Crates.io Version](https://img.shields.io/crates/v/tree-sitter-scheme)](https://crates.io/crates/tree-sitter-scheme) [![NPM Version](https://img.shields.io/npm/v/%406cdh%2Ftree-sitter-scheme)](https://www.npmjs.com/package/@6cdh/tree-sitter-scheme)
 
 Scheme parser for tree-sitter.
 
