@@ -35,6 +35,7 @@
     "bindings/node/*",
     "queries/*",
     "src/**",
+    "tree-sitter.json",
     "*.wasm"
   ]
 }
