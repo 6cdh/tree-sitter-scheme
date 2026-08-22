@@ -27,6 +27,11 @@ const r6rsSubsequent = choice(
   r6rsUnicodeSubsequent,
 );
 
+const r7rsInitial = /[A-Za-z!$%&*\/:<=>?^_~]/;
+const r7rsSignSubsequent = choice(r7rsInitial, /[+\-@]/);
+const r7rsDotSubsequent = choice(r7rsSignSubsequent, ".");
+const r7rsSubsequent = choice(r7rsInitial, /[0-9+.@-]/);
+
 const boolean = {
   r5rs: token(seq("#", /[tTfF]/)),
   r6rs: token(seq("#", /[tTfF]/)),
@@ -92,14 +97,15 @@ const character = {
       choice("bel", "ls", "nel", "rubout", "vt"))),
 };
 
-// R6RS 4.2 intraline whitespace and line ending. String line
-// continuation uses these. R7RS reuses the R6RS productions for now.
+// String line continuations use dialect-specific whitespace and endings.
 const intralineWhitespace = {
   r6rs: /[\t\p{Zs}]/,
+  r7rs: /[ \t]/,
 };
 
 const lineEnding = {
   r6rs: /[\n\r\u{2028}\u{0085}]|(\r\n)|(\r\u{0085})/,
+  r7rs: /(\r\n)|[\r\n]/,
 };
 
 const stringEscape = {
@@ -123,9 +129,9 @@ const stringEscape = {
       choice(
         /[abtnr"\\]/,
         seq(
-          repeat(intralineWhitespace.r6rs),
-          lineEnding.r6rs,
-          repeat(intralineWhitespace.r6rs)),
+          repeat(intralineWhitespace.r7rs),
+          lineEnding.r7rs,
+          repeat(intralineWhitespace.r7rs)),
         /[xX][0-9a-fA-F]+;/))),
   permissive: token(/\\./),
 };
@@ -157,15 +163,20 @@ const symbol = {
       "...",
       seq("->", repeat(r6rsSubsequent)))),
   r7rs:
-    token(seq(
-      "|",
-      repeat(
-        choice(
-          /[^\|\\]+/,
-          /\\[xX][0-9a-fA-F]+;/,
-          /\\[abtnr]/,
-          "\\|")),
-      "|")),
+    token(choice(
+      seq(r7rsInitial, repeat(r7rsSubsequent)),
+      seq(/[+-]/, optional(seq(r7rsSignSubsequent, repeat(r7rsSubsequent)))),
+      seq(/[+-]/, ".", r7rsDotSubsequent, repeat(r7rsSubsequent)),
+      seq(".", r7rsDotSubsequent, repeat(r7rsSubsequent)),
+      seq(
+        "|",
+        repeat(
+          choice(
+            /[^\|\\]+/,
+            /\\[xX][0-9a-fA-F]+;/,
+            /\\[abtnr]/,
+            "\\|")),
+        "|"))),
 };
 
 const keyword = {
@@ -382,12 +393,12 @@ function r7rs_number_base(n) {
     choice(
       real,
       seq(real, "@", real),
-      seq(real, /[+-]/, ureal, "i"),
-      seq(real, /[+-]/, "i"),
-      seq(real, infnan, "i"),
-      seq(/[+-]/, ureal, "i"),
-      seq(infnan, "i"),
-      seq(/[+-]/, "i"));
+      seq(real, /[+-]/, ureal, /[iI]/),
+      seq(real, /[+-]/, /[iI]/),
+      seq(real, infnan, /[iI]/),
+      seq(/[+-]/, ureal, /[iI]/),
+      seq(infnan, /[iI]/),
+      seq(/[+-]/, /[iI]/));
 
   const num =
     seq(

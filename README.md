@@ -6,9 +6,9 @@ Scheme parser for tree-sitter.
 
 ## Recent News
 
-* Maintained R5RS and R6RS dialects: `dialects/r5rs/` and `dialects/r6rs/`.
-  The default `scheme` parser accepts both standards. Reusable reader
-  fragments live under `grammar/`.
+* Maintained R5RS, R6RS, and R7RS-small dialects live under `dialects/`.
+  The default `scheme` parser accepts R5RS and R6RS. Reusable reader fragments
+  live under `grammar/`.
 
 ## Status
 
@@ -26,6 +26,12 @@ The R6RS parser is `dialects/r6rs/` (language name `scheme`). It selects
 the lexical syntax and datum syntax from chapter 4 of R6RS. The local reference
 is `docs/r6rs.pdf`, with searchable text in `docs/r6rs.txt`.
 
+The R7RS-small parser is `dialects/r7rs/` (language name `scheme`). It selects
+the lexical syntax and external representations from sections 7.1.1 and 7.1.2.
+The local reference is `docs/r7rs.pdf`. The parser recognizes `#!fold-case`
+and `#!no-fold-case`, but a static syntax tree does not normalize later
+identifiers according to that reader state.
+
 The frozen R5RS parser is a separate Tree-sitter project in `dialects/r5rs/`.
 It is not a drop-in for the default parser or its queries. Build it in that
 directory:
@@ -41,7 +47,8 @@ Or from the repository root: `npm run generate:r5rs`, `npm run test:r5rs`,
 `npm run build:r5rs`.
 
 Use the matching `generate:r6rs`, `test:r6rs`, and `build:r6rs` scripts for
-the R6RS parser.
+the R6RS parser. Use `generate:r7rs`, `test:r7rs`, and `build:r7rs` for the
+R7RS-small parser.
 
 Do not pass a dialect `grammar.js` to `npx tree-sitter generate` from the
 repository root. CLI 0.24 would overwrite the default `src/` files.

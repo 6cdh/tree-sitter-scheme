@@ -24,7 +24,13 @@ const comment = {
 
 const directive = {
   r6rs: token("#!r6rs"),
+  r7rs: token(choice("#!fold-case", "#!no-fold-case")),
   hashBang: (intertoken, symbol) => seq("#!", repeat(intertoken), symbol),
+};
+
+const label = {
+  definition: datum => seq("#", /[0-9]+/, "=", datum),
+  reference: token(seq("#", /[0-9]+/, "#")),
 };
 
 // Round, square, and curly lists share one shape: delimiters around repeated
@@ -80,6 +86,7 @@ const abbrev = {
 
 const vector = {
   hash: token => seq("#(", repeat(token), ")"),
+  u8: token => seq("#u8(", repeat(token), ")"),
   vu8: token => seq("#vu8(", repeat(token), ")"),
 };
 
@@ -87,6 +94,7 @@ module.exports = {
   abbrev,
   comment,
   directive,
+  label,
   list,
   vector,
 };
