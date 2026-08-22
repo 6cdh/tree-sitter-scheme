@@ -11,7 +11,10 @@
     "test": "node --test bindings/node/*_test.js",
     "generate:r5rs": "node scripts/run-dialect.js r5rs generate",
     "build:r5rs": "node scripts/run-dialect.js r5rs build",
-    "test:r5rs": "node scripts/run-dialect.js r5rs test"
+    "test:r5rs": "node scripts/run-dialect.js r5rs test",
+    "generate:r6rs": "node scripts/run-dialect.js r6rs generate",
+    "build:r6rs": "node scripts/run-dialect.js r6rs build",
+    "test:r6rs": "node scripts/run-dialect.js r6rs test"
   },
   "author": "6cdh",
   "license": "MIT",

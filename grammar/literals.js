@@ -1,7 +1,30 @@
-const {common} = require("./core");
+const { anyCharacter } = require("./core");
 
 // Lexical fragments are already token(...). Dialects select them without a
 // second token() wrapper. string stays a factory because it has child nodes.
+
+const r6rsHexEscape = /\\x[0-9a-fA-F]+;/;
+
+// R6RS constituent above ASCII. ASCII letters sit in r6rsInitial.
+const r6rsUnicodeInitial = new RegExp(
+  String.raw`[[\p{Lu}\p{Ll}\p{Lt}\p{Lm}\p{Lo}\p{Mn}\p{Nl}\p{No}\p{Pd}\p{Pc}\p{Po}\p{Sc}\p{Sm}\p{Sk}\p{So}\p{Co}]&&[^\x00-\x7F]]`,
+);
+// Nd, Mc, and Me only. Other unicode subsequent characters already match
+// as r6rsInitial, and subsequent includes initial.
+const r6rsUnicodeSubsequent = new RegExp(
+  String.raw`[[\p{Nd}\p{Mc}\p{Me}]&&[^\x00-\x7F]]`,
+);
+
+const r6rsInitial = choice(
+  /[A-Za-z!$%&*\/:<=>?^_~]/,
+  r6rsUnicodeInitial,
+  r6rsHexEscape,
+);
+const r6rsSubsequent = choice(
+  r6rsInitial,
+  /[0-9+.@-]/,
+  r6rsUnicodeSubsequent,
+);
 
 const boolean = {
   r5rs: token(seq("#", /[tTfF]/)),
@@ -43,7 +66,7 @@ const character = {
       choice(
         /[sS][pP][aA][cC][eE]/,
         /[nN][eE][wW][lL][iI][nN][eE]/,
-        common.any_char))),
+        anyCharacter))),
   r6rs:
     token(seq(
       "#\\",
@@ -52,8 +75,7 @@ const character = {
         "linefeed", "newline", "vtab", "page",
         "return", "esc", "space", "delete",
         /x[0-9a-fA-F]+/,
-        /u[0-9a-fA-F]+/,
-        common.any_char))),
+        anyCharacter))),
   r7rs:
     token(seq(
       "#\\",
@@ -62,11 +84,21 @@ const character = {
         "escape", "newline", "null",
         "return", "space", "tab",
         /[xX][0-9a-fA-F]+/,
-        common.any_char))),
+        anyCharacter))),
   extension:
     token(seq(
       "#\\",
       choice("bel", "ls", "nel", "rubout", "vt"))),
+};
+
+// R6RS 4.2 intraline whitespace and line ending. String line
+// continuation uses these. R7RS reuses the R6RS productions for now.
+const intralineWhitespace = {
+  r6rs: /[\t\p{Zs}]/,
+};
+
+const lineEnding = {
+  r6rs: /[\n\r\u{2028}\u{0085}]|(\r\n)|(\r\u{0085})/,
 };
 
 const stringEscape = {
@@ -81,18 +113,18 @@ const stringEscape = {
         /[abtnvfr"\\]/,
         /x[0-9a-fA-F]+;/,
         seq(
-          common.intra_whitespace,
-          common.line_ending,
-          common.intra_whitespace)))),
+          repeat(intralineWhitespace.r6rs),
+          lineEnding.r6rs,
+          repeat(intralineWhitespace.r6rs))))),
   r7rs:
     token(seq(
       "\\",
       choice(
         /[abtnr"\\]/,
         seq(
-          repeat(common.intra_whitespace),
-          common.line_ending,
-          repeat(common.intra_whitespace)),
+          repeat(intralineWhitespace.r6rs),
+          lineEnding.r6rs,
+          repeat(intralineWhitespace.r6rs)),
         /[xX][0-9a-fA-F]+;/))),
   permissive: token(/\\./),
 };
@@ -115,7 +147,14 @@ const symbol = {
       "+",
       "-",
       "...")),
-  permissive: token(repeat1(common.symbol_element)),
+  // R6RS identifier: initial subsequent* | peculiar identifier.
+  r6rs:
+    token(choice(
+      seq(r6rsInitial, repeat(r6rsSubsequent)),
+      "+",
+      "-",
+      "...",
+      seq("->", repeat(r6rsSubsequent)))),
   r7rs:
     token(seq(
       "|",
@@ -250,14 +289,19 @@ function r6rs_number_base(n) {
     optional(
       seq("|", repeat1(digits10)));
 
-  const naninf = choice("nan.0", "inf.0");
+  const naninf = choice(
+    /[nN][aA][nN]\.0/,
+    /[iI][nN][fF]\.0/);
 
   const ureal =
-    seq(
-      choice(
+    n === 10
+      ? choice(
         uinteger,
         seq(uinteger, "/", uinteger),
-        seq(decimal, mantissa_width)));
+        seq(decimal, mantissa_width))
+      : choice(
+        uinteger,
+        seq(uinteger, "/", uinteger));
   const real =
     choice(
       seq(sign, ureal),
@@ -270,7 +314,7 @@ function r6rs_number_base(n) {
         optional(real),
         /[+-]/,
         optional(choice(ureal, naninf)),
-        "i"));
+        /[iI]/));
 
   return seq(prefix, complex);
 }
@@ -357,7 +401,9 @@ function r7rs_number_base(n) {
 module.exports = {
   boolean,
   character,
+  intralineWhitespace,
   keyword,
+  lineEnding,
   number,
   string,
   stringEscape,

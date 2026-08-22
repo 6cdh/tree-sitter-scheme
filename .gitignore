@@ -1,6 +1,7 @@
 node_modules/
 .generated/
 dialects/*/src/
+dialects/r6rs/test/corpus/generated-line-endings.scm
 dialects/*/*.so
 dialects/*/*.dll
 dialects/*/*.dylib

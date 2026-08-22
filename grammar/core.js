@@ -1,20 +1,16 @@
-const common = {
-  whitespace: /[ \r\n\t\f\v\p{Zs}\p{Zl}\p{Zp}]/,
-  intra_whitespace: /[\t\p{Zs}]/,
-  line_ending: /[\n\r\u{2028}\u{0085}]|(\r\n)|(\r\u{0085})/,
-  any_char: /.|[\r\n\u{85}\u{2028}\u{2029}]/,
-
-  symbol_element:
-    /[^ \r\n\t\f\v\p{Zs}\p{Zl}\p{Zp}#;"'`,\(\)\{\}\[\]\\\|]/,
-};
+// Tree-sitter `.` does not match line breaks. Character constants and
+// nested block comments need every Unicode scalar, including those.
+const anyCharacter = /.|[\r\n\u{85}\u{2028}\u{2029}]/;
 
 const whitespace = {
-  // R5RS names only space and newline as portable whitespace.
+  // R5RS 7.1.1 names space and newline. CR is included so CRLF files
+  // still separate tokens.
   r5rs: token(repeat1(/[ \r\n]/)),
-  extended: token(repeat1(common.whitespace)),
+  // R6RS 4.2 whitespace. U+0085 NEXT LINE is Cc, not Zs/Zl/Zp.
+  r6rs: token(repeat1(/[ \r\n\t\f\v\u{85}\p{Zs}\p{Zl}\p{Zp}]/)),
 };
 
 module.exports = {
-  common,
+  anyCharacter,
   whitespace,
 };

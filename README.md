@@ -6,8 +6,9 @@ Scheme parser for tree-sitter.
 
 ## Recent News
 
-* Frozen R5RS dialect: `dialects/r5rs/`. The default `scheme` parser may grow
-  beyond R5RS. Reusable reader fragments live under `grammar/`.
+* Maintained R5RS and R6RS dialects: `dialects/r5rs/` and `dialects/r6rs/`.
+  The default `scheme` parser remains unchanged. Reusable reader fragments
+  live under `grammar/`.
 
 ## Status
 
@@ -17,6 +18,10 @@ It selects the R5RS token forms and external representations from sections
 
 The default `scheme` parser currently uses the same R5RS selection. It is not
 frozen and may later include R6RS, R7RS, and selected extensions.
+
+The R6RS parser is `dialects/r6rs/` (language name `scheme`). It selects
+the lexical syntax and datum syntax from chapter 4 of R6RS. The local reference
+is `docs/r6rs.pdf`, with searchable text in `docs/r6rs.txt`.
 
 The frozen R5RS parser is a separate Tree-sitter project in `dialects/r5rs/`.
 It is not a drop-in for the default parser or its queries. Build it in that
@@ -32,7 +37,10 @@ npx tree-sitter build
 Or from the repository root: `npm run generate:r5rs`, `npm run test:r5rs`,
 `npm run build:r5rs`.
 
-Do not run `npx tree-sitter generate dialects/r5rs/grammar.js` from the
+Use the matching `generate:r6rs`, `test:r6rs`, and `build:r6rs` scripts for
+the R6RS parser.
+
+Do not pass a dialect `grammar.js` to `npx tree-sitter generate` from the
 repository root. CLI 0.24 would overwrite the default `src/` files.
 
 The parser intentionally allows implicit-termination tokens to end without an

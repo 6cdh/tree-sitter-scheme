@@ -30,6 +30,10 @@ function run(args) {
   }
 }
 
+if (dialect === "r6rs") {
+  require("./write-r6rs-line-ending-corpus.js")();
+}
+
 // Always generate in the dialect directory. CLI 0.24 writes src/ in cwd;
 // generating from the repository root would overwrite the default parser.
 run(["generate"]);

@@ -43,7 +43,7 @@ module.exports = grammar({
       $.unquote_splicing,
     ),
 
-    comment: _ => syntax.comment.line,
+    comment: _ => syntax.comment.line.r5rs,
 
     // One lexical fragment is already a token. token(choice(...)) is for a
     // rule that composes several lexical fragments.

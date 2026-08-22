@@ -1,18 +1,28 @@
-const {common} = require("./core");
+const {anyCharacter} = require("./core");
 
 const comment = {
-  line: token(/;.*/),
+  line: {
+    // R5RS 2.2: the comment runs to the end of the line, and that line
+    // break stays visible as whitespace. Stop at CR and LF so they match
+    // core.whitespace.r5rs. Do not treat NEL, U+2028, or U+2029 as
+    // R5RS line breaks.
+    r5rs: token(seq(";", /[^\n\r]*/)),
+    // R6RS 4.2.1: a line comment runs up to a line ending or paragraph
+    // separator. Leave those characters out so whitespace can consume them.
+    r6rs: token(seq(";", /[^\n\r\u{85}\u{2028}\u{2029}]*/)),
+  },
   datum: (intertoken, datum) => seq("#;", repeat(intertoken), datum),
   block: self =>
     seq("#|",
       repeat(
         choice(
           prec(100, self),
-          common.any_char)),
+          anyCharacter)),
       prec(100, "|#")),
 };
 
 const directive = {
+  r6rs: token("#!r6rs"),
   hashBang: (intertoken, symbol) => seq("#!", repeat(intertoken), symbol),
 };
 

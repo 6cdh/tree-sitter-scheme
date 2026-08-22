@@ -22,6 +22,12 @@ jobs:
         run: |
           tree-sitter generate
           tree-sitter test
+      - name: Test R6RS dialect
+        working-directory: dialects/r6rs
+        run: |
+          node ../../scripts/write-r6rs-line-ending-corpus.js
+          tree-sitter generate
+          tree-sitter test
 
   # chez:
   #   runs-on: ubuntu-latest
