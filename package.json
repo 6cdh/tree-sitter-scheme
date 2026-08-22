@@ -8,7 +8,10 @@
     "install": "node-gyp-build",
     "prestart": "tree-sitter build --wasm",
     "start": "tree-sitter playground",
-    "test": "node --test bindings/node/*_test.js"
+    "test": "node --test bindings/node/*_test.js",
+    "generate:r5rs": "node scripts/run-dialect.js r5rs generate",
+    "build:r5rs": "node scripts/run-dialect.js r5rs build",
+    "test:r5rs": "node scripts/run-dialect.js r5rs test"
   },
   "author": "6cdh",
   "license": "MIT",
@@ -30,6 +33,8 @@
   },
   "files": [
     "grammar.js",
+    "grammar/**",
+    "dialects/**",
     "binding.gyp",
     "prebuilds/**",
     "bindings/node/*",

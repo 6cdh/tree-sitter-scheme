@@ -17,6 +17,11 @@ jobs:
           tree-sitter-ref: v0.24.7
       - name: Run tests
         run: tree-sitter test
+      - name: Test R5RS dialect
+        working-directory: dialects/r5rs
+        run: |
+          tree-sitter generate
+          tree-sitter test
 
   # chez:
   #   runs-on: ubuntu-latest

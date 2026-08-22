@@ -6,31 +6,39 @@ Scheme parser for tree-sitter.
 
 ## Recent News
 
-* With R7RS support, a single `|` can no longer appear in the middle of an identifier.
-* The node `directive` no longer contains the sub node `symbol`. It is now a single node.
-* Some extensions were added, see below.
+* Frozen R5RS dialect: `dialects/r5rs/`. The default `scheme` parser may grow
+  beyond R5RS. Reusable reader fragments live under `grammar/`.
 
 ## Status
 
-~~tree-sitter-scheme should work on a superset of Scheme.~~
+The maintained R5RS parser is `dialects/r5rs/` (language name `scheme`).
+It selects the R5RS token forms and external representations from sections
+7.1.1 and 7.1.2.
 
-Different implementations might have conflicting grammars. I am not sure if I should support
-them. If you need some implementation-specific features, please open an issue, then I will consider supporting it.
+The default `scheme` parser currently uses the same R5RS selection. It is not
+frozen and may later include R6RS, R7RS, and selected extensions.
 
-current status:
+The frozen R5RS parser is a separate Tree-sitter project in `dialects/r5rs/`.
+It is not a drop-in for the default parser or its queries. Build it in that
+directory:
 
-* [x] R5RS
-* [x] R6RS
-* [x] R7RS
-* [ ] Extensions
-  * [x] `{}` as replacement for `()` or `[]`
-  * [x] extend symbols which can start with digits, period, ... etc as long as it's not a number
-  * [x] keyword `#:symbol`
-  * [x] escape sequence in string `\` + any character
-  * [x] characters `#\bel`, `#\ls`, `#\nel`, `#\rubout`, `#\vt`
-  * [x] character `#\u[A-Fa-f0-9]+`
+```sh
+cd dialects/r5rs
+npx tree-sitter generate
+npx tree-sitter test
+npx tree-sitter build
+```
 
-Please open an issue to let me know it's really used if you want to add new extensions.
+Or from the repository root: `npm run generate:r5rs`, `npm run test:r5rs`,
+`npm run build:r5rs`.
+
+Do not run `npx tree-sitter generate dialects/r5rs/grammar.js` from the
+repository root. CLI 0.24 would overwrite the default `src/` files.
+
+The parser intentionally allows implicit-termination tokens to end without an
+R5RS delimiter. This loose behavior is useful while editing incomplete code.
+For example, `123abc` becomes a `number` followed by a `symbol` instead of an
+error.
 
 ## Implementation
 
@@ -69,4 +77,3 @@ Tree-sitter
 * [tree-sitter-clojure](https://github.com/sogaiu/tree-sitter-clojure)
 * [tree-sitter-commonlisp](https://github.com/theHamsta/tree-sitter-commonlisp)
 * [tree-sitter-fennel](https://github.com/TravonteD/tree-sitter-fennel)
-

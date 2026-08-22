@@ -1,9 +1,11 @@
 const {
   core,
   syntax,
-} = require("./grammar/index");
+} = require("../../grammar/index");
 
-// Frozen R5RS copy: dialects/r5rs/grammar.js. This default grammar may grow.
+// Frozen R5RS reader: section 7.1.1 tokens and 7.1.2 data, not 7.1.3
+// expressions. Do not add R6RS, R7RS, or other extensions here. The default
+// root grammar.js may grow. Formal syntax: docs/r5rs.pdf.
 
 module.exports = grammar({
   name: "scheme",
@@ -13,7 +15,7 @@ module.exports = grammar({
   // R5RS 7.1.1 says identifiers, numbers, characters, and dot may be
   // terminated only by a delimiter: whitespace, (, ), ", or ;. This parser
   // does not enforce that. 123abc is a number then a symbol, which is useful
-  // while editing. Formal syntax: docs/r5rs.pdf (section 7.1).
+  // while editing.
 
   rules: {
     // Keep the start rule first. Tree-sitter uses the first rule as the start.

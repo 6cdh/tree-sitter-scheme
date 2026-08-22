@@ -1,4 +1,9 @@
 node_modules/
+.generated/
+dialects/*/src/
+dialects/*/*.so
+dialects/*/*.dll
+dialects/*/*.dylib
 build/
 target/
 test.scm

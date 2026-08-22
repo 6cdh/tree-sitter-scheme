@@ -4,27 +4,19 @@ This page contains all visible nodes in yaml format.
 
 ```yaml
 - comment
-- block_comment # for example, #| something |#
-- directive # for example, #!r6rs
 - boolean
 - character
 - string
-- escape_sequence # escape sequence in string, for example, \n in "abc\n"
+- escape_sequence # `\"` or `\\` in a string
 - number
-- symbol # identifier
-- keyword # #:identifier
+- symbol # R5RS identifier
 
-- list # things surrounded by () or [] or {}
+- list # () list; may contain `dot`
+- dot # `.` inside a list
 - quote # '
 - quasiquote # `
-- syntax # #'
-- quasisyntax #`
 - unquote # ,
 - unquote_splicing # ,@
-- unsyntax # #,
-- unsyntax_splicing # #,@
 
 - vector
-- byte_vector
 ```
-
