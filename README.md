@@ -7,8 +7,8 @@ Scheme parser for tree-sitter.
 ## Recent News
 
 * Maintained R5RS and R6RS dialects: `dialects/r5rs/` and `dialects/r6rs/`.
-  The default `scheme` parser remains unchanged. Reusable reader fragments
-  live under `grammar/`.
+  The default `scheme` parser accepts both standards. Reusable reader
+  fragments live under `grammar/`.
 
 ## Status
 
@@ -16,8 +16,11 @@ The maintained R5RS parser is `dialects/r5rs/` (language name `scheme`).
 It selects the R5RS token forms and external representations from sections
 7.1.1 and 7.1.2.
 
-The default `scheme` parser currently uses the same R5RS selection. It is not
-frozen and may later include R6RS, R7RS, and selected extensions.
+The default `scheme` parser accepts the union of R5RS and R6RS reader syntax.
+Where the standards assign different token boundaries to the same text, the
+default parser prefers R6RS: `#\xFF` is one hexadecimal character, and an
+identifier such as `->name` is one symbol. Use a standard-specific parser when
+those parse-tree differences matter.
 
 The R6RS parser is `dialects/r6rs/` (language name `scheme`). It selects
 the lexical syntax and datum syntax from chapter 4 of R6RS. The local reference

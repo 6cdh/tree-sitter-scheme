@@ -8,7 +8,8 @@ const comment = {
     // R5RS line breaks.
     r5rs: token(seq(";", /[^\n\r]*/)),
     // R6RS 4.2.1: a line comment runs up to a line ending or paragraph
-    // separator. Leave those characters out so whitespace can consume them.
+    // separator. This contains the R5RS form and adds Unicode line endings.
+    // Leave those characters out so whitespace can consume them.
     r6rs: token(seq(";", /[^\n\r\u{85}\u{2028}\u{2029}]*/)),
   },
   datum: (intertoken, datum) => seq("#;", repeat(intertoken), datum),

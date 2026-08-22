@@ -47,8 +47,6 @@ module.exports = grammar({
 
     comment: _ => syntax.comment.line.r5rs,
 
-    // One lexical fragment is already a token. token(choice(...)) is for a
-    // rule that composes several lexical fragments.
     boolean: _ => syntax.boolean.r5rs,
     number: _ => syntax.number.r5rs,
     character: _ => syntax.character.r5rs,

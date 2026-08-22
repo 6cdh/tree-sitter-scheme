@@ -1,4 +1,4 @@
-["(" ")"] @punctuation.bracket
+["(" ")" "[" "]"] @punctuation.bracket
 (dot) @punctuation.delimiter
 
 (number) @number
@@ -51,4 +51,9 @@
 (quote
   (_ (_ (_ _* @constant))))
 
-(comment) @comment
+[
+  (comment)
+  (block_comment)
+  (sexp_comment)
+  (directive)
+] @comment

@@ -4,7 +4,8 @@ const {
 } = require("../../grammar/index");
 
 // R6RS reader: chapter 4 lexical syntax and datum syntax. The default root
-// grammar.js does not select these rules. Formal syntax: docs/r6rs.pdf.
+// grammar.js also selects these rules as part of its R5RS and R6RS union.
+// Formal syntax: docs/r6rs.pdf.
 
 module.exports = grammar({
   name: "scheme",

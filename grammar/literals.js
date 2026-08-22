@@ -1,7 +1,8 @@
 const { anyCharacter } = require("./core");
 
-// Lexical fragments are already token(...). Dialects select them without a
-// second token() wrapper. string stays a factory because it has child nodes.
+// A plain lexical fragment owns token(...). A grammar uses one fragment
+// directly or wraps a composition of several fragments in one token(...).
+// string stays a factory because it has child nodes.
 
 const r6rsHexEscape = /\\x[0-9a-fA-F]+;/;
 

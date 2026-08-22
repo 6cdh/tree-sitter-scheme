@@ -79,7 +79,7 @@ quote
 (program
   (quote (symbol))
   (quasiquote (symbol))
-  (syntax (symbol))
+  (syntax_quote (symbol))
   (quasisyntax (symbol)))
 
 ===

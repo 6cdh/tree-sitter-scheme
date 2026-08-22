@@ -113,7 +113,7 @@ comment
 ---
 (program
   (comment)
-  (comment (list (symbol)))
+  (sexp_comment (list (symbol)))
   (block_comment)
   (block_comment)
   (block_comment
@@ -123,6 +123,18 @@ comment
       (block_comment)
       (block_comment))
     (block_comment)))
+
+===
+R6RS wins ambiguous token readings
+===
+
+#\xFF
+->name
+
+---
+(program
+  (character)
+  (symbol))
 
 ===
 quote
@@ -137,7 +149,7 @@ quote
 (program
   (quote (symbol))
   (quasiquote (symbol))
-  (syntax (symbol))
+  (syntax_quote (symbol))
   (quasisyntax (symbol)))
 
 ===
@@ -173,4 +185,3 @@ number
   (number)
   (number)
   (number))
-
