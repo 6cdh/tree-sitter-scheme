@@ -93,10 +93,10 @@ const character = {
         "return", "space", "tab",
         /[xX][0-9a-fA-F]+/,
         anyCharacter))),
-  extension:
-    token(seq(
-      "#\\",
-      choice("bel", "ls", "nel", "rubout", "vt"))),
+  // `/u[0-9a-fA-F]+/` needs at least one hex digit, so `#\u` is still
+  // the letter u.
+  steelScheme:
+    token(seq("#\\", /u[0-9a-fA-F]+/)),
 };
 
 // String line continuations use dialect-specific whitespace and endings.

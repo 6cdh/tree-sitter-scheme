@@ -82,6 +82,7 @@ module.exports = grammar({
       syntax.character.r6rs,
       syntax.character.r7rs,
       syntax.character.r5rs,
+      syntax.character.steelScheme,
     )),
 
     string: $ => syntax.string($.escape_sequence),
