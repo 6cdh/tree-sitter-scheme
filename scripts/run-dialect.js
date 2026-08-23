@@ -7,10 +7,11 @@ const path = require("path");
 const root = path.join(__dirname, "..");
 const dialect = process.argv[2];
 const action = process.argv[3] || "test";
-const actions = new Set(["generate", "build", "test"]);
+const extraArgs = process.argv.slice(4);
+const actions = new Set(["generate", "build", "test", "parse"]);
 
 if (!dialect || !actions.has(action)) {
-  console.error("usage: node scripts/run-dialect.js <dialect> generate|build|test");
+  console.error("usage: node scripts/run-dialect.js <dialect> generate|build|test|parse [file...]");
   process.exit(2);
 }
 
@@ -47,6 +48,24 @@ if (action === "generate") {
 
 if (action === "build") {
   run(["build"]);
+  process.exit(0);
+}
+
+if (action === "parse") {
+  if (extraArgs.length === 0) {
+    console.error("usage: node scripts/run-dialect.js <dialect> parse <file> [file...]");
+    process.exit(2);
+  }
+  run(["build"]);
+  // CLI 0.24 parse loads src/ from cwd. Keep that as the dialect
+  // directory, but resolve file names from the caller's cwd.
+  const parseArgs = extraArgs.map((arg) => {
+    if (arg.startsWith("-")) {
+      return arg;
+    }
+    return path.resolve(process.cwd(), arg);
+  });
+  run(["parse", ...parseArgs]);
   process.exit(0);
 }
 

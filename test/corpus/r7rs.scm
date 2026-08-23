@@ -92,8 +92,8 @@ comment
   (comment)
   (block_comment
     (block_comment))
-  (comment
-    (comment
+  (sexp_comment
+    (sexp_comment
       (number))
     (number)))
 
@@ -114,7 +114,7 @@ quote
         (number))
       (unquote_splicing
         (number))
-      (symbol)
+      (dot)
       (number))))
 
 ===
@@ -149,8 +149,6 @@ Z
 +!
 +!.
 +..!$
-1+
-123abc123
 | abc |
 |
 #;abc
@@ -185,6 +183,23 @@ Z
   (symbol)
   (symbol)
   (symbol)
-  (symbol)
-  (symbol)
   (symbol))
+
+===
+byte vector and datum labels
+===
+
+#u8(0 1 #xff)
+#0=(a . #0#)
+
+---
+(program
+  (byte_vector
+    (number)
+    (number)
+    (number))
+  (datum_label
+    (list
+      (symbol)
+      (dot)
+      (datum_reference))))

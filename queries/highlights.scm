@@ -5,6 +5,7 @@
 (character) @constant.builtin
 (boolean) @constant.builtin
 (symbol) @variable
+(datum_reference) @variable
 
 (string) @string
 

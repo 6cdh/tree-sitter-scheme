@@ -7,8 +7,8 @@ Scheme parser for tree-sitter.
 ## Recent News
 
 * Maintained R5RS, R6RS, and R7RS-small dialects live under `dialects/`.
-  The default `scheme` parser accepts R5RS and R6RS. Reusable reader fragments
-  live under `grammar/`.
+  The default `scheme` parser accepts all three standards. Reusable reader
+  fragments live under `grammar/`.
 
 ## Status
 
@@ -16,11 +16,13 @@ The maintained R5RS parser is `dialects/r5rs/` (language name `scheme`).
 It selects the R5RS token forms and external representations from sections
 7.1.1 and 7.1.2.
 
-The default `scheme` parser accepts the union of R5RS and R6RS reader syntax.
-Where the standards assign different token boundaries to the same text, the
-default parser prefers R6RS: `#\xFF` is one hexadecimal character, and an
-identifier such as `->name` is one symbol. Use a standard-specific parser when
-those parse-tree differences matter.
+The default `scheme` parser accepts the union of R5RS, R6RS, and R7RS reader
+syntax. Where the standards assign different token boundaries to the same
+text, the default parser chooses the longest complete token. For example,
+`#\XFF` is one R7RS hexadecimal character, while `#\nul` remains one R6RS
+named character. Line comments use R6RS line endings, including NEL, U+2028,
+and U+2029. Use a standard-specific parser when those parse-tree differences
+matter.
 
 The R6RS parser is `dialects/r6rs/` (language name `scheme`). It selects
 the lexical syntax and datum syntax from chapter 4 of R6RS. The local reference
@@ -44,19 +46,24 @@ npx tree-sitter build
 ```
 
 Or from the repository root: `npm run generate:r5rs`, `npm run test:r5rs`,
-`npm run build:r5rs`.
+`npm run build:r5rs`. To parse a file with that dialect (generate, build,
+then parse):
 
-Use the matching `generate:r6rs`, `test:r6rs`, and `build:r6rs` scripts for
-the R6RS parser. Use `generate:r7rs`, `test:r7rs`, and `build:r7rs` for the
-R7RS-small parser.
+```sh
+npm run parse:r5rs -- path/to/file.scm
+```
+
+Use the matching `generate:r6rs`, `test:r6rs`, `build:r6rs`, and
+`parse:r6rs` scripts for the R6RS parser. Use `generate:r7rs`, `test:r7rs`,
+`build:r7rs`, and `parse:r7rs` for the R7RS-small parser.
 
 Do not pass a dialect `grammar.js` to `npx tree-sitter generate` from the
 repository root. CLI 0.24 would overwrite the default `src/` files.
 
-The parser intentionally allows implicit-termination tokens to end without an
-R5RS delimiter. This loose behavior is useful while editing incomplete code.
-For example, `123abc` becomes a `number` followed by a `symbol` instead of an
-error.
+Identifiers follow R5RS, R6RS, and R7RS lexical syntax, so they cannot
+start with a digit. The parser still does not require a delimiter after a
+number. `123abc` is a `number` followed by a `symbol`, not one identifier
+and not an error.
 
 ## Implementation
 

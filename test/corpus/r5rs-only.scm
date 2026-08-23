@@ -155,8 +155,7 @@ nondecimal radix requires digits
 
 ---
 (program
-  (ERROR
-    (UNEXPECTED '\n')))
+  (ERROR))
 
 ===
 adjacent number and identifier
@@ -190,5 +189,4 @@ adjacent dot and datum
 (program
   (list
     (symbol)
-    (dot)
     (symbol)))

@@ -157,3 +157,14 @@ R6RS square lists are not R7RS
 
 (program
   (ERROR))
+
+==================
+Nondecimal radix requires digits
+==================
+
+#b
+
+---
+
+(program
+  (ERROR))

@@ -11,6 +11,9 @@ const comment = {
     // separator. This contains the R5RS form and adds Unicode line endings.
     // Leave those characters out so whitespace can consume them.
     r6rs: token(seq(";", /[^\n\r\u{85}\u{2028}\u{2029}]*/)),
+    // R7RS 7.1.1 names only CR and LF as line endings. Other Unicode line
+    // separators remain part of the comment.
+    r7rs: token(seq(";", /[^\n\r]*/)),
   },
   datum: (intertoken, datum) => seq("#;", repeat(intertoken), datum),
   block: self =>

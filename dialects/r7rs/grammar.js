@@ -50,7 +50,7 @@ module.exports = grammar({
       $.datum_reference,
     ),
 
-    comment: _ => syntax.comment.line.r5rs,
+    comment: _ => syntax.comment.line.r7rs,
     block_comment: $ => syntax.comment.block($.block_comment),
     sexp_comment: $ => syntax.comment.datum($._intertoken, $._datum),
     directive: _ => syntax.directive.r7rs,

@@ -12,12 +12,15 @@
     "generate:r5rs": "node scripts/run-dialect.js r5rs generate",
     "build:r5rs": "node scripts/run-dialect.js r5rs build",
     "test:r5rs": "node scripts/run-dialect.js r5rs test",
+    "parse:r5rs": "node scripts/run-dialect.js r5rs parse",
     "generate:r6rs": "node scripts/run-dialect.js r6rs generate",
     "build:r6rs": "node scripts/run-dialect.js r6rs build",
     "test:r6rs": "node scripts/run-dialect.js r6rs test",
+    "parse:r6rs": "node scripts/run-dialect.js r6rs parse",
     "generate:r7rs": "node scripts/run-dialect.js r7rs generate",
     "build:r7rs": "node scripts/run-dialect.js r7rs build",
-    "test:r7rs": "node scripts/run-dialect.js r7rs test"
+    "test:r7rs": "node scripts/run-dialect.js r7rs test",
+    "parse:r7rs": "node scripts/run-dialect.js r7rs parse"
   },
   "author": "6cdh",
   "license": "MIT",

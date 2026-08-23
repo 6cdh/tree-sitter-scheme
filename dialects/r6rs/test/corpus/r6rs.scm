@@ -24,11 +24,12 @@ R6RS identifiers
 ===
 
 lambda list->vector ->- + - ...
-H\x65;llo \x3BB; λ V17a
+H\x65;llo \x3BB; λ 变量 V17a
 
 ---
 
 (program
+  (symbol)
   (symbol)
   (symbol)
   (symbol)

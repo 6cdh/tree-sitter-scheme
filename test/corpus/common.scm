@@ -30,6 +30,7 @@ variable
   (symbol)
   (symbol)
   (symbol)
+  (number)
   (symbol)
   (symbol))
 

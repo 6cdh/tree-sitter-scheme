@@ -6,13 +6,15 @@ This page contains all visible nodes in yaml format.
 - comment
 - block_comment # nested `#| ... |#` comment
 - sexp_comment # `#;` followed by one datum
-- directive # `#!r6rs`
+- directive # `#!r6rs`, `#!fold-case`, or `#!no-fold-case`
 - boolean
 - character
 - string
 - escape_sequence # `\"` or `\\` in a string
 - number
-- symbol # R5RS or R6RS identifier
+- symbol # R5RS, R6RS, or R7RS identifier
+- datum_label # `#0=` followed by one datum
+- datum_reference # `#0#`
 
 - list # `()` or `[]` list; may contain `dot`
 - dot # `.` inside a list
@@ -26,5 +28,5 @@ This page contains all visible nodes in yaml format.
 - unsyntax_splicing # #,@
 
 - vector
-- byte_vector # `#vu8(...)`
+- byte_vector # `#vu8(...)` or `#u8(...)`
 ```
