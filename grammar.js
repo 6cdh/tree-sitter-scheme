@@ -125,7 +125,7 @@ module.exports = grammar({
     unsyntax: $ => syntax.abbrev.unsyntax($._intertoken, $._datum),
     unsyntax_splicing: $ => syntax.abbrev.unsyntaxSplicing($._intertoken, $._datum),
 
-    datum_label: $ => syntax.label.definition($._datum),
+    datum_label: $ => syntax.label.definition.r7rs($._datum),
     datum_reference: _ => syntax.label.reference,
   },
 });

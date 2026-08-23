@@ -66,6 +66,15 @@ const number = {
       r7rs_number_base(10),
       r7rs_number_base(16))),
 };
+number.chez = token(choice(
+  number.r6rs,
+  // Chez mode keeps the R5RS `#` digit placeholders that R6RS removed.
+  number.r5rs,
+  chez_nondecimal_number_base(2),
+  chez_nondecimal_number_base(8),
+  chez_nondecimal_number_base(16),
+  chez_arbitrary_radix_number(),
+));
 
 const character = {
   r5rs:
@@ -98,6 +107,13 @@ const character = {
   steelScheme:
     token(seq("#\\", /u[0-9a-fA-F]+/)),
 };
+character.chez = token(choice(
+  character.r6rs,
+  seq("#\\", choice(
+    /[0-7]{3}/,
+    "bel", "ls", "nel", "rubout", "vt",
+  )),
+));
 
 // String line continuations use dialect-specific whitespace and endings.
 const intralineWhitespace = {
@@ -135,8 +151,12 @@ const stringEscape = {
           lineEnding.r7rs,
           repeat(intralineWhitespace.r7rs)),
         /[xX][0-9a-fA-F]+;/))),
-  permissive: token(/\\./),
 };
+stringEscape.chez = token(choice(
+  stringEscape.r6rs,
+  /\\'/,
+  /\\[0-7]{3}/,
+));
 
 const string = escape_sequence =>
   seq(
@@ -179,6 +199,25 @@ const symbol = {
             /\\[abtnr]/,
             "\\|")),
         "|"))),
+  // Chez accepts any delimited sequence that is not a number as an
+  // identifier. A longer spelling such as 0abc wins as one identifier
+  // instead of being split after the leading number. In Chez mode, a
+  // number-like token may contain `#`; it becomes an identifier when the
+  // complete token is not a number, as in 32/#. `|` is not a Chez
+  // delimiter, so 32/#|foo| is one identifier.
+  chez:
+    token(choice(
+      /[0-9+\.\-][0-9A-Za-z+\.\-\/@|#]*#[0-9A-Za-z+\.\-\/@|#]*/,
+      repeat1(choice(
+        /[^\s()\[\]{}"'`,;#\\|]+/,
+        /\\x[0-9a-fA-F]+;/,
+        /\\[^x\r\n]/,
+        seq(
+          "|",
+          repeat(choice(/[^|\\]+/, /\\./)),
+          "|"))),
+      "{",
+      "}")),
 };
 
 const keyword = {
@@ -402,6 +441,55 @@ function r7rs_number_base(n) {
       complex);
 
   return num;
+}
+
+// Chez extends the ordinary radix prefixes with fractional and exponent
+// notation. The digit class is still radix-specific, so a hexadecimal e is a
+// digit before it is considered as an exponent marker.
+function chez_nondecimal_number_base(n) {
+  const radix = {
+    2: /#[bB]/,
+    8: /#[oO]/,
+    16: /#[xX]/,
+  }[n];
+  const digit = {
+    2: /[01]/,
+    8: /[0-7]/,
+    16: /[0-9a-fA-F]/,
+  }[n];
+  const exactness = optional(/#[iIeE]/);
+  const prefix = choice(
+    seq(radix, exactness),
+    seq(exactness, radix));
+  const sign = optional(/[+-]/);
+  const exponent = optional(seq(/[eEsSfFdDlL]/, sign, repeat1(digit)));
+  const uinteger = repeat1(digit);
+  const ureal = choice(
+    uinteger,
+    seq(uinteger, "/", uinteger),
+    seq(".", repeat1(digit), exponent),
+    seq(uinteger, ".", repeat(digit), exponent),
+    seq(uinteger, exponent));
+  const real = seq(sign, ureal);
+
+  return seq(prefix, choice(
+    real,
+    seq(real, "@", real),
+    seq(optional(real), /[+-]/, optional(ureal), /[iI]/)));
+}
+
+// Digit validity for #nr depends on n and cannot be encoded by Tree-sitter's
+// regular lexer without listing 35 number towers. Chez performs that semantic
+// check. Keep the token bounded to the documented radix range and number
+// punctuation so editor input remains one number node.
+function chez_arbitrary_radix_number() {
+  const exactness = /#[iIeE]/;
+  const radix = /#(?:[2-9]|[12][0-9]|3[0-6])[rR]/;
+  const prefix = choice(
+    seq(radix, optional(exactness)),
+    seq(optional(exactness), radix));
+
+  return seq(prefix, /[+\-]?[0-9A-Za-z.\/@|#]+/);
 }
 
 // number }}}

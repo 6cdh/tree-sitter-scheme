@@ -20,7 +20,11 @@
     "generate:r7rs": "node scripts/run-dialect.js r7rs generate",
     "build:r7rs": "node scripts/run-dialect.js r7rs build",
     "test:r7rs": "node scripts/run-dialect.js r7rs test",
-    "parse:r7rs": "node scripts/run-dialect.js r7rs parse"
+    "parse:r7rs": "node scripts/run-dialect.js r7rs parse",
+    "generate:chez": "node scripts/run-dialect.js chez generate",
+    "build:chez": "node scripts/run-dialect.js chez build",
+    "test:chez": "node scripts/run-dialect.js chez test",
+    "parse:chez": "node scripts/run-dialect.js chez parse"
   },
   "author": "6cdh",
   "license": "MIT",

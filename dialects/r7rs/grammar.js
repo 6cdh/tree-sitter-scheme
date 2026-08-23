@@ -74,7 +74,7 @@ module.exports = grammar({
     unquote: $ => syntax.abbrev.unquote($._intertoken, $._datum),
     unquote_splicing: $ => syntax.abbrev.unquoteSplicing($._intertoken, $._datum),
 
-    datum_label: $ => syntax.label.definition($._datum),
+    datum_label: $ => syntax.label.definition.r7rs($._datum),
     datum_reference: _ => syntax.label.reference,
   },
 });

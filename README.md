@@ -6,8 +6,8 @@ Scheme parser for tree-sitter.
 
 ## Recent News
 
-* Maintained R5RS, R6RS, and R7RS-small dialects live under `dialects/`.
-  The default `scheme` parser accepts all three standards. Reusable reader
+* Maintained R5RS, R6RS, R7RS-small, and Chez Scheme dialects live under
+  `dialects/`. The default `scheme` parser accepts all three standards. Reusable reader
   fragments live under `grammar/`.
 
 ## Status
@@ -34,6 +34,12 @@ The local reference is `docs/r7rs.pdf`. The parser recognizes `#!fold-case`
 and `#!no-fold-case`, but a static syntax tree does not normalize later
 identifiers according to that reader state.
 
+The Chez Scheme parser is `dialects/chez/` (language name `scheme`). It accepts
+R6RS reader syntax plus the Chez Scheme 10.4 external representations extracted
+in `docs/chez-scheme-syntax.md`. It represents reader directives but accepts a
+fixed R6RS/Chez union; a static syntax tree cannot apply state changes from
+`#!r6rs`, `#!chezscheme`, or the case-folding directives.
+
 The frozen R5RS parser is a separate Tree-sitter project in `dialects/r5rs/`.
 It is not a drop-in for the default parser or its queries. Build it in that
 directory:
@@ -55,7 +61,8 @@ npm run parse:r5rs -- path/to/file.scm
 
 Use the matching `generate:r6rs`, `test:r6rs`, `build:r6rs`, and
 `parse:r6rs` scripts for the R6RS parser. Use `generate:r7rs`, `test:r7rs`,
-`build:r7rs`, and `parse:r7rs` for the R7RS-small parser.
+`build:r7rs`, and `parse:r7rs` for the R7RS-small parser. Use `generate:chez`,
+`test:chez`, `build:chez`, and `parse:chez` for the Chez Scheme parser.
 
 Do not pass a dialect `grammar.js` to `npx tree-sitter generate` from the
 repository root. CLI 0.24 would overwrite the default `src/` files.
@@ -68,7 +75,7 @@ and not an error.
 ## Implementation
 
 * [ ] Support for implementation
-  * [ ] Chez Scheme ([#1](https://github.com/6cdh/tree-sitter-scheme/issues/1))
+  * [x] Chez Scheme ([#1](https://github.com/6cdh/tree-sitter-scheme/issues/1))
   * [ ] Chicken Scheme ([#3](https://github.com/6cdh/tree-sitter-scheme/issues/3))
   * [ ] Guile Scheme ([#7](https://github.com/6cdh/tree-sitter-scheme/issues/7))
   * [ ] Steel Scheme ([#17](https://github.com/6cdh/tree-sitter-scheme/issues/17))
@@ -94,6 +101,7 @@ Scheme
 * [R6RS](http://www.r6rs.org/)
 * [R7RS](https://small.r7rs.org/)
 * [The Scheme Programming Language](https://www.scheme.com/tspl4/)
+* [Chez Scheme User's Guide](https://cisco.github.io/ChezScheme/csug/)
 
 Tree-sitter
 

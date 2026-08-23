@@ -16,6 +16,12 @@ const comment = {
     r7rs: token(seq(";", /[^\n\r]*/)),
   },
   datum: (intertoken, datum) => seq("#;", repeat(intertoken), datum),
+  // Unix shebang. Require a space or slash after #! so this does not eat
+  // #!r6rs, #!chezscheme, #!eof, or the other hash-bang tokens.
+  shebang: token(choice(
+    seq("#!", /[ \t]+/, /[^\n\r]*/),
+    seq("#!/", /[^\n\r]*/),
+  )),
   block: self =>
     seq("#|",
       repeat(
@@ -28,11 +34,27 @@ const comment = {
 const directive = {
   r6rs: token("#!r6rs"),
   r7rs: token(choice("#!fold-case", "#!no-fold-case")),
+  chezscheme: token("#!chezscheme"),
   hashBang: (intertoken, symbol) => seq("#!", repeat(intertoken), symbol),
+};
+directive.chez = token(choice(
+  directive.chezscheme,
+  directive.r6rs,
+  directive.r7rs,
+));
+
+const specialObject = {
+  chez: token(choice("#!eof", "#!bwp", "#!base-rtd")),
 };
 
 const label = {
-  definition: datum => seq("#", /[0-9]+/, "=", datum),
+  definition: {
+    // R7RS 2.4: `#⟨n⟩=⟨datum⟩` with no atmosphere after `=`.
+    r7rs: datum => seq("#", /[0-9]+/, "=", datum),
+    // Chez: `#n=` is one token; intertoken may follow before the datum.
+    chez: (intertoken, datum) =>
+      seq("#", /[0-9]+/, "=", repeat(intertoken), datum),
+  },
   reference: token(seq("#", /[0-9]+/, "#")),
 };
 
@@ -91,13 +113,50 @@ const vector = {
   hash: token => seq("#(", repeat(token), ")"),
   u8: token => seq("#u8(", repeat(token), ")"),
   vu8: token => seq("#vu8(", repeat(token), ")"),
+  hashLength: token => seq("#", optional(/[0-9]+/), "(", repeat(token), ")"),
+  vu8Length: token => seq("#", optional(/[0-9]+/), "vu8(", repeat(token), ")"),
+  vfx: token => seq("#", optional(/[0-9]+/), "vfx(", repeat(token), ")"),
+  vfl: token => seq("#", optional(/[0-9]+/), "vfl(", repeat(token), ")"),
+  vs: token => seq("#", /[0-9]+/, "vs(", repeat(token), ")"),
 };
+
+const box = (intertoken, datum) =>
+  seq("#&", repeat(intertoken), datum);
+
+const record = (intertoken, token, typeName) =>
+  seq(
+    "#[",
+    repeat(intertoken),
+    typeName,
+    repeat(token),
+    "]");
+
+const gensym = {
+  pretty: symbol => seq("#:", symbol),
+  unique: (intertoken, symbol) =>
+    seq(
+      "#{",
+      repeat(intertoken),
+      symbol,
+      repeat1(intertoken),
+      symbol,
+      repeat(intertoken),
+      "}"),
+};
+
+const primitive = symbol =>
+  seq(token(seq("#", optional(/[23]/), "%")), symbol);
 
 module.exports = {
   abbrev,
+  box,
   comment,
   directive,
+  gensym,
   label,
   list,
+  primitive,
+  record,
+  specialObject,
   vector,
 };
