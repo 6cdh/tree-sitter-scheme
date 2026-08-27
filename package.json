@@ -24,7 +24,11 @@
     "generate:chez": "node scripts/run-dialect.js chez generate",
     "build:chez": "node scripts/run-dialect.js chez build",
     "test:chez": "node scripts/run-dialect.js chez test",
-    "parse:chez": "node scripts/run-dialect.js chez parse"
+    "parse:chez": "node scripts/run-dialect.js chez parse",
+    "generate:guile": "node scripts/run-dialect.js guile generate",
+    "build:guile": "node scripts/run-dialect.js guile build",
+    "test:guile": "node scripts/run-dialect.js guile test",
+    "parse:guile": "node scripts/run-dialect.js guile parse"
   },
   "author": "6cdh",
   "license": "MIT",

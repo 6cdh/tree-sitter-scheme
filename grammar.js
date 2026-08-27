@@ -61,7 +61,10 @@ module.exports = grammar({
     // R6RS line comments include the common R5RS/R7RS form and also stop at
     // the Unicode line endings recognized by the default whitespace rule.
     comment: _ => syntax.comment.line.r6rs,
-    block_comment: $ => syntax.comment.block($.block_comment),
+    block_comment: $ => syntax.comment.block(
+      $.block_comment,
+      value => prec(100, value),
+    ),
     sexp_comment: $ => syntax.comment.datum($._intertoken, $._datum),
     directive: _ => token(choice(
       syntax.directive.r7rs,

@@ -33,6 +33,12 @@ const r7rsInitial = /[A-Za-z!$%&*\/:<=>?^_~]/;
 const r7rsSignSubsequent = choice(r7rsInitial, /[+\-@]/);
 const r7rsDotSubsequent = choice(r7rsSignSubsequent, ".");
 const r7rsSubsequent = choice(r7rsInitial, /[0-9+.@-]/);
+const r7rsBareSymbolMembers = [
+  seq(r7rsInitial, repeat(r7rsSubsequent)),
+  seq(/[+-]/, optional(seq(r7rsSignSubsequent, repeat(r7rsSubsequent)))),
+  seq(/[+-]/, ".", r7rsDotSubsequent, repeat(r7rsSubsequent)),
+  seq(".", r7rsDotSubsequent, repeat(r7rsSubsequent)),
+];
 
 const boolean = {
   r5rs: token(seq("#", /[tTfF]/)),
@@ -66,6 +72,17 @@ const number = {
       r7rs_number_base(10),
       r7rs_number_base(16))),
 };
+// Guile string->number is R5RS 7.1 plus signed inf/nan. It is not the
+// R6RS/R7RS union: no mantissa width, and 1.0|53 is a symbol.
+//
+// Do not use choice(number.r5rs, inf.0, nan.0). inf.0 and nan.0 can be a
+// component inside a larger number, so Guile needs one number definition
+// that forks the R5RS number rules.
+number.guile = token(choice(
+  guile_number_base(2),
+  guile_number_base(8),
+  guile_number_base(10),
+  guile_number_base(16)));
 number.chez = token(choice(
   number.r6rs,
   // Chez mode keeps the R5RS `#` digit placeholders that R6RS removed.
@@ -107,6 +124,16 @@ const character = {
   steelScheme:
     token(seq("#\\", /u[0-9a-fA-F]+/)),
 };
+// After #\ , Guile takes one delimiter character, or one token until a
+// delimiter. Names, octal, and hex classify that token; they are not
+// lexer alternatives. docs/guile-scheme-syntax.md Character.
+character.guile = token(seq(
+  "#\\",
+  choice(
+    /[ \t\f\r\n()\[\]{}";]/,
+    /[^ \t\f\r\n()\[\]{}";]+/,
+  ),
+));
 character.chez = token(choice(
   character.r6rs,
   seq("#\\", choice(
@@ -152,6 +179,19 @@ const stringEscape = {
           repeat(intralineWhitespace.r7rs)),
         /[xX][0-9a-fA-F]+;/))),
 };
+// Guile string escapes from ice-9/read. The union accepts default \xHH
+// and optional r6rs \xHHHH; plus optional hungry spaces after \ newline.
+stringEscape.guile = token(seq(
+  "\\",
+  choice(
+    /[|\\("0abfnrtv]/,
+    /x[0-9a-fA-F]{2}/,
+    /x[0-9a-fA-F]+;/,
+    /u[0-9a-fA-F]{4}/,
+    /U[0-9a-fA-F]{6}/,
+    seq("\n", repeat(/[\t\p{Zs}]/)),
+  ),
+));
 stringEscape.chez = token(choice(
   stringEscape.r6rs,
   /\\'/,
@@ -186,10 +226,7 @@ const symbol = {
       seq("->", repeat(r6rsSubsequent)))),
   r7rs:
     token(choice(
-      seq(r7rsInitial, repeat(r7rsSubsequent)),
-      seq(/[+-]/, optional(seq(r7rsSignSubsequent, repeat(r7rsSubsequent)))),
-      seq(/[+-]/, ".", r7rsDotSubsequent, repeat(r7rsSubsequent)),
-      seq(".", r7rsDotSubsequent, repeat(r7rsSubsequent)),
+      ...r7rsBareSymbolMembers,
       seq(
         "|",
         repeat(
@@ -219,9 +256,45 @@ const symbol = {
       "{",
       "}")),
 };
+// Guile reads until a mode-dependent delimiter, then tries string->number
+// before falling back to a symbol. Do not use `\s`: vertical tab, NEL, and
+// Unicode separators are not Guile delimiters.
+symbol.guile = token(seq(
+  /[^ \t\f\r\n()\[\]{}"'` ,;#:]/,
+  repeat(/[^ \t\f\r\n()\[\]{}";]/),
+));
+// Guile's #{...}# form stops at the first }#. Do not wrap this in token():
+// repeat(anyCharacter) would be greedy and take the last }#, and wrap(prec)
+// inside token() does not compete with anyCharacter in the same token.
+// Keep it structural, like block comments: }# stays here, wrap sets priority.
+symbol.guileExtended = wrap => seq(
+  "#{",
+  repeat(anyCharacter),
+  wrap("}#"),
+);
+// Optional r7rs-symbols: |...| with string-style escapes. Do not reuse
+// symbol.r7rs; that identifier grammar treats : as initial and would
+// steal prefix keywords.
+symbol.guileVertical = token(seq(
+  "|",
+  repeat(choice(
+    /[^|\\]+/,
+    /\\x[0-9a-fA-F]+;/,
+    /\\[abtnr|\\]/,
+  )),
+  "|",
+));
 
 const keyword = {
   prefix: symbol => token(seq("#:", symbol)),
+  // Ordinary token that does not start with a digit, +, -, or . (those
+  // go through string->number first) and that ends in `:`. Colon is not
+  // a delimiter, so foo:bar: and foo:: are one keyword each.
+  guilePostfix: token(seq(
+    /[^ \t\f\r\n()\[\]{}"'` ,;#0-9+\-.:]/,
+    repeat(/[^ \t\f\r\n()\[\]{}";]/),
+    ":",
+  )),
 };
 
 // number {{{
@@ -284,6 +357,79 @@ function r5rs_number_base(n) {
     real,
     seq(real, "@", real),
     seq(optional(real), /[+-]/, optional(ureal), /[iI]/)
+  );
+
+  return seq(prefix, complex);
+}
+
+function guile_number_base(n) {
+  const radixn = {
+    2: choice("#b", "#B"),
+    8: choice("#o", "#O"),
+    10: optional(choice("#d", "#D")),
+    16: choice("#x", "#X"),
+  };
+  const digitsn = {
+    2: /[01]/,
+    8: /[0-7]/,
+    10: /[0-9]/,
+    16: /[0-9a-fA-F]/,
+  };
+
+  const exactness =
+    optional(
+      choice("#i", "#e", "#I", "#E"));
+  const radix = radixn[n];
+  const prefix =
+    choice(
+      seq(radix, exactness),
+      seq(exactness, radix));
+
+  const sign = optional(/[+-]/);
+  const digits = digitsn[n];
+
+  const exponent = /[eEsSfFdDlL]/;
+  const suffix =
+    optional(
+      seq(
+        exponent,
+        sign,
+        repeat1(digitsn[10])));
+
+  const uinteger =
+    seq(
+      repeat1(digits),
+      repeat("#"));
+  const decimal10 = choice(
+    seq(uinteger, suffix),
+    seq(".", repeat1(digits), repeat("#"), suffix),
+    seq(repeat1(digits), ".", repeat(digits), repeat("#"), suffix),
+    seq(repeat1(digits), repeat1("#"), ".", repeat("#"), suffix)
+  );
+  const ureal =
+    n === 10
+      ? choice(
+        uinteger,
+        seq(uinteger, "/", uinteger),
+        decimal10)
+      : choice(
+        uinteger,
+        seq(uinteger, "/", uinteger));
+  // Inf is exactly inf.0 after a sign. Nan is nan. then a zero uinteger.
+  const infnan = choice(
+    /[iI][nN][fF]\.0/,
+    /[nN][aA][nN]\.0[0#]*/);
+  const real = choice(
+    seq(sign, ureal),
+    seq(/[+-]/, infnan));
+  const complex = choice(
+    real,
+    seq(real, "@", real),
+    seq(
+      optional(real),
+      /[+-]/,
+      optional(choice(ureal, infnan)),
+      /[iI]/)
   );
 
   return seq(prefix, complex);

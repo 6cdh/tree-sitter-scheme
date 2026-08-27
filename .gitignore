@@ -3,6 +3,7 @@ node_modules/
 dialects/*/src/
 dialects/r6rs/test/corpus/generated-line-endings.scm
 dialects/r7rs/test/corpus/generated-line-endings.scm
+dialects/guile/test/corpus/generated-whitespace.scm
 dialects/*/*.so
 dialects/*/*.dll
 dialects/*/*.dylib

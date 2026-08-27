@@ -6,9 +6,10 @@ Scheme parser for tree-sitter.
 
 ## Recent News
 
-* Maintained R5RS, R6RS, R7RS-small, and Chez Scheme dialects live under
+* Maintained R5RS, R6RS, R7RS-small, Chez Scheme, and Guile dialects live under
   `dialects/`. The default `scheme` parser accepts all three standards. Reusable reader
-  fragments live under `grammar/`.
+  fragments live under `grammar/`. How to add or change a dialect:
+  [docs/design.md](docs/design.md).
 
 ## Status
 
@@ -25,12 +26,12 @@ and U+2029. Use a standard-specific parser when those parse-tree differences
 matter.
 
 The R6RS parser is `dialects/r6rs/` (language name `scheme`). It selects
-the lexical syntax and datum syntax from chapter 4 of R6RS. The local reference
-is `docs/r6rs.pdf`, with searchable text in `docs/r6rs.txt`.
+the lexical syntax and datum syntax from chapter 4 of R6RS
+(http://www.r6rs.org/).
 
 The R7RS-small parser is `dialects/r7rs/` (language name `scheme`). It selects
-the lexical syntax and external representations from sections 7.1.1 and 7.1.2.
-The local reference is `docs/r7rs.pdf`. The parser recognizes `#!fold-case`
+the lexical syntax and external representations from sections 7.1.1 and 7.1.2
+(https://small.r7rs.org/). The parser recognizes `#!fold-case`
 and `#!no-fold-case`, but a static syntax tree does not normalize later
 identifiers according to that reader state.
 
@@ -39,6 +40,13 @@ R6RS reader syntax plus the Chez Scheme 10.4 external representations extracted
 in `docs/chez-scheme-syntax.md`. It represents reader directives but accepts a
 fixed R6RS/Chez union; a static syntax tree cannot apply state changes from
 `#!r6rs`, `#!chezscheme`, or the case-folding directives.
+
+The Guile parser is `dialects/guile/` (language name `scheme`). Its Guile
+3.0.11 reader syntax is extracted in `docs/guile-scheme-syntax.md`. It includes
+Guile symbols and keywords, arrays and uniform vectors, bitvectors, byte
+strings, `#nil`, curly-infix source forms, string escapes, and `#! ... !#`
+script comments. Reader directives and dynamic hash prefixes are visible
+nodes, but the static parser does not execute their state changes or callbacks.
 
 The frozen R5RS parser is a separate Tree-sitter project in `dialects/r5rs/`.
 It is not a drop-in for the default parser or its queries. Build it in that
@@ -62,7 +70,8 @@ npm run parse:r5rs -- path/to/file.scm
 Use the matching `generate:r6rs`, `test:r6rs`, `build:r6rs`, and
 `parse:r6rs` scripts for the R6RS parser. Use `generate:r7rs`, `test:r7rs`,
 `build:r7rs`, and `parse:r7rs` for the R7RS-small parser. Use `generate:chez`,
-`test:chez`, `build:chez`, and `parse:chez` for the Chez Scheme parser.
+`test:chez`, `build:chez`, and `parse:chez` for the Chez Scheme parser. Use
+`generate:guile`, `test:guile`, `build:guile`, and `parse:guile` for Guile.
 
 Do not pass a dialect `grammar.js` to `npx tree-sitter generate` from the
 repository root. CLI 0.24 would overwrite the default `src/` files.
@@ -77,7 +86,7 @@ and not an error.
 * [ ] Support for implementation
   * [x] Chez Scheme ([#1](https://github.com/6cdh/tree-sitter-scheme/issues/1))
   * [ ] Chicken Scheme ([#3](https://github.com/6cdh/tree-sitter-scheme/issues/3))
-  * [ ] Guile Scheme ([#7](https://github.com/6cdh/tree-sitter-scheme/issues/7))
+  * [x] Guile Scheme ([#7](https://github.com/6cdh/tree-sitter-scheme/issues/7))
   * [ ] Steel Scheme ([#17](https://github.com/6cdh/tree-sitter-scheme/issues/17))
 
 ## Usage
@@ -102,6 +111,7 @@ Scheme
 * [R7RS](https://small.r7rs.org/)
 * [The Scheme Programming Language](https://www.scheme.com/tspl4/)
 * [Chez Scheme User's Guide](https://cisco.github.io/ChezScheme/csug/)
+* [GNU Guile Reference Manual](https://www.gnu.org/software/guile/manual/)
 
 Tree-sitter
 

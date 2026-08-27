@@ -39,6 +39,12 @@ jobs:
         run: |
           tree-sitter generate
           tree-sitter test
+      - name: Test Guile dialect
+        working-directory: dialects/guile
+        run: |
+          node ../../scripts/write-guile-whitespace-corpus.js
+          tree-sitter generate
+          tree-sitter test
 
   chez-scheme:
     runs-on: ubuntu-latest
@@ -75,6 +81,42 @@ jobs:
           parse_report="$(mktemp)"
           tree-sitter parse --quiet --stat "$input_dir"/*.ss 2>&1 \
             | tee "$parse_report"
+          grep -Fq "failed parses: 0;" "$parse_report"
+
+  guile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up tree sitter
+        uses: tree-sitter/setup-action/cli@v1
+        with:
+          tree-sitter-ref: v0.24.7
+      - name: Check out Guile 3.0.11 tests
+        shell: bash
+        run: |
+          git init .guile
+          git -C .guile remote add origin https://codeberg.org/guile/guile.git
+          git -C .guile fetch --depth=1 origin f7e1255dbdcb755b4c8e7e0331384e4668ceb78f
+          git -C .guile checkout --detach FETCH_HEAD
+      - name: Build Guile parser
+        working-directory: dialects/guile
+        run: |
+          tree-sitter generate
+          tree-sitter build
+      - name: Parse Guile test sources
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p .agent-scratch
+          cd dialects/guile
+          parse_report="$(mktemp)"
+          find ../../.guile/test-suite -type f \
+            \( -name guile-test -o -name '*.test' -o -name '*.scm' \
+               -o -name '*.ss' -o -name '*.nottest' -o -name '*.sr64' \
+               -o -name '*.bench' \) -print0 \
+            | sort -z \
+            | xargs -0 tree-sitter parse --quiet --stat \
+            | tee "$parse_report" ../../.agent-scratch/guile-upstream-parse.log
           grep -Fq "failed parses: 0;" "$parse_report"
 
   sicp:

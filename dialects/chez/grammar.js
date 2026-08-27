@@ -64,7 +64,10 @@ module.exports = grammar({
     ),
 
     comment: _ => syntax.comment.line.r6rs,
-    block_comment: $ => syntax.comment.block($.block_comment),
+    block_comment: $ => syntax.comment.block(
+      $.block_comment,
+      value => prec(100, value),
+    ),
     sexp_comment: $ => syntax.comment.datum($._intertoken, $._datum),
     directive: _ => syntax.directive.chez,
     shebang: _ => syntax.comment.shebang,

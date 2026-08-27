@@ -37,6 +37,9 @@ if (dialect === "r6rs") {
 if (dialect === "r7rs") {
   require("./write-r7rs-line-ending-corpus.js")();
 }
+if (dialect === "guile") {
+  require("./write-guile-whitespace-corpus.js")();
+}
 
 // Always generate in the dialect directory. CLI 0.24 writes src/ in cwd;
 // generating from the repository root would overwrite the default parser.
