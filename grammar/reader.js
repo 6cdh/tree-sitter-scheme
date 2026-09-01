@@ -83,7 +83,7 @@ const label = {
         field("label", label),
         "=",
         repeat(intertoken),
-        field("value", datum)),
+        datum),
   },
   reference: token(seq("#", /[0-9]+/, "#")),
   referenceWithField: label =>
@@ -189,7 +189,7 @@ const vector = {
 };
 
 const box = (intertoken, datum) =>
-  seq("#&", repeat(intertoken), field("value", datum));
+  seq("#&", repeat(intertoken), datum);
 
 const record = (intertoken, token, typeName) =>
   seq(
@@ -204,20 +204,20 @@ const record = (intertoken, token, typeName) =>
 const gensymSpace = token(repeat1(/[ \t\n]/));
 
 const gensym = {
-  pretty: symbol => seq("#:", field("pretty", symbol)),
+  pretty: symbol => seq("#:", symbol),
   unique: symbol =>
     seq(
       "#{",
-      field("pretty", symbol),
+      symbol,
       repeat1(gensymSpace),
-      field("unique", symbol),
+      symbol,
       "}"),
 };
 
 const primitive = (prefix, symbol) =>
   seq(
     field("prefix", prefix),
-    field("name", symbol));
+    symbol);
 
 module.exports = {
   abbrev,

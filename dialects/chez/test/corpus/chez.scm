@@ -188,46 +188,46 @@ Chez compound and graph data
 
 (program
   (box
-    value: (number))
+    (number))
   (record
     name: (symbol)
     (number)
     (number))
   (record
     name: (gensym
-      pretty: (symbol)
-      unique: (symbol))
+      (symbol)
+      (symbol))
     (symbol))
   (gensym
-    pretty: (symbol))
+    (symbol))
   (gensym
-    pretty: (symbol)
-    unique: (symbol))
+    (symbol)
+    (symbol))
   (quote
     (list
       (datum_label
         label: (datum_label_id)
-        value: (list
+        (list
           (symbol)))
       (dot)
       (datum_reference
         label: (datum_label_id))))
   (datum_label
     label: (datum_label_id)
-    value: (list
+    (list
       (symbol)
       (dot)
       (datum_reference
         label: (datum_label_id))))
   (primitive
     prefix: (primitive_prefix)
-    name: (symbol))
+    (symbol))
   (primitive
     prefix: (primitive_prefix)
-    name: (symbol))
+    (symbol))
   (primitive
     prefix: (primitive_prefix)
-    name: (symbol))
+    (symbol))
   (special_object)
   (special_object)
   (special_object)
@@ -245,7 +245,7 @@ Graph mark allows intertoken before the datum
 (program
   (datum_label
     label: (datum_label_id)
-    value: (list
+    (list
       (symbol))))
 
 ===
@@ -313,11 +313,11 @@ Chez reader cases borrowed from upstream mats
 
 (program
   (gensym
-    pretty: (symbol)
-    unique: (symbol))
+    (symbol)
+    (symbol))
   (gensym
-    pretty: (symbol)
-    unique: (symbol))
+    (symbol)
+    (symbol))
   (character)
   (character)
   (character)
@@ -361,13 +361,13 @@ Chez reader cases borrowed from upstream mats
     (list
       (datum_label
         label: (datum_label_id)
-        value: (record
+        (record
           name: (gensym
-            pretty: (symbol)
-            unique: (symbol))
+            (symbol)
+            (symbol))
           (datum_label
             label: (datum_label_id)
-            value: (list
+            (list
               (symbol)
               (symbol)))
           (datum_reference
