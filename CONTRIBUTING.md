@@ -29,8 +29,15 @@ tree-sitter generate
 tree-sitter test
 ```
 
-Or run its matching root script, such as `npm run test:r5rs` or
-`npm run test:guile`.
+Or run the matching root scripts, such as `npm run generate:r5rs` and
+`npm run test:r5rs`. Matching scripts exist for every maintained dialect.
+To generate, build, and parse a file with one dialect, run:
+
+```shell
+npm run parse:r5rs -- path/to/file.scm
+```
+
+Replace `r5rs` with `r6rs`, `r7rs`, `chez`, or `guile` as needed.
 
 How to add or change a dialect or a shared fragment is in
 [docs/design.md](docs/design.md). Agents start from [AGENTS.md](AGENTS.md).

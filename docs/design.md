@@ -7,10 +7,18 @@ testing rules for changes in those areas.
 Reader syntax belongs in the relevant standard or implementation notes:
 
 - [GNU Guile 3.0.11](guile-scheme-syntax.md)
-- [Chez Scheme 10.4](chez-scheme-syntax.md)
+- [Chez Scheme 10.4.0](chez-scheme-syntax.md)
+- [CHICKEN Scheme 6.0.0](chicken-scheme-syntax.md)
 - [R5RS](https://schemers.org/Documents/Standards/R5RS/HTML/)
 - [R6RS](http://www.r6rs.org/)
 - [R7RS-small](https://small.r7rs.org/)
+
+Syntax reference documents describe formal syntax first. They must not treat
+observed implementation behavior as normative when the published syntax is
+clear. Keep an `Implementation Behavior` section only for token boundaries or
+other formal-syntax gaps that the published sources leave unclear. Syntax
+documents describe reader syntax only; grammar and node-shape decisions stay
+with the owning grammar, its queries, and its tests.
 
 ## Repository model
 
@@ -166,7 +174,7 @@ Some readers change behavior through directives or callbacks. A static grammar
 can represent one mode or a documented permissive union, but it cannot execute
 reader state changes. Use an external scanner only when serialized scanner
 state can model the required incremental behavior. State known limits in the
-dialect documentation and tests.
+owning grammar's comments and tests.
 
 ## Generated parsers
 
@@ -195,13 +203,15 @@ Include positive dialect syntax, syntax shared with other parsers, and negative
 cases for syntax the dialect rejects. Generation itself is a required check
 because it exposes lexer and parser conflicts.
 
-Every exported fragment must be selected by at least one maintained parser.
+Every exported fragment must be selected by at least one maintained parser,
+either directly or composed inside another selected fragment.
 Share corpus cases where practical instead of copying identical cases between
 dialects.
 
 Scripts generate corpus cases whose bytes are easy to damage in an editor:
 
 - R6RS line endings: `scripts/write-r6rs-line-ending-corpus.js`
+- R7RS line endings: `scripts/write-r7rs-line-ending-corpus.js`
 - Chez line endings: `scripts/write-chez-line-ending-corpus.js`
 - Guile whitespace: `scripts/write-guile-whitespace-corpus.js`
 

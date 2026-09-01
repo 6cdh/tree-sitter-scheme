@@ -51,10 +51,10 @@ Chez booleans, characters, and strings
     (escape_sequence)))
 
 ===
-Chez character dispatch
+Chez valid character dispatch
 ===
 
-#\space #\x41 #\X41 #\a4 #\000 #\( #\12 #\xy #\x41g
+#\space #\x41 #\000 #\(
 
 ---
 
@@ -62,12 +62,23 @@ Chez character dispatch
   (character)
   (character)
   (character)
-  (number)
+  (character))
+
+===
+Chez invalid character spellings use static recovery shapes
+===
+
+#\X41 #\a4 #\12 #\xy #\x41g
+
+---
+
+(program
   (character)
   (number)
   (character)
+  (number)
   (character)
-  (character)
+  (number)
   (character)
   (symbol)
   (character))

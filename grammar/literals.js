@@ -138,17 +138,19 @@ const character = {
         /[^ \t\f\r\n()\[\]{}";]+/,
       ))),
   // Chez rd-token-char. Lowercase x plus a hex digit starts hex; a later
-  // non-hex non-delimiter turns that same token into a name. Two ASCII
-  // letters start a name. Two or three octal digits are the octal form.
-  // Otherwise one character. Name-table, scalar-value, and octal-range
-  // checks are runtime. docs/chez-scheme-syntax.md Character.
+  // non-hex non-delimiter sends the complete token to character-name lookup.
+  // Two ASCII letters start that same name path. Two initial octal digits
+  // commit to exactly three octal digits. Otherwise one character is read.
+  // A static grammar cannot enforce the final delimiter or runtime name,
+  // scalar-value, and octal-range checks, so malformed forms recover as a
+  // character plus any following tokens. docs/chez-scheme-syntax.md Character.
   chez:
     token(seq(
       "#\\",
       choice(
         seq("x", /[0-9a-fA-F]+/, repeat(chezNonDelimiter)),
         seq(/[a-wyzA-Z]/, /[a-zA-Z]/, repeat(chezNonDelimiter)),
-        /[0-7]{2,3}/,
+        /[0-7]{3}/,
         anyCharacter))),
 };
 
@@ -315,7 +317,6 @@ symbol.guileVertical = token(seq(
 ));
 
 const keyword = {
-  prefix: symbol => token(seq("#:", symbol)),
   // Ordinary token that does not start with a digit, +, -, or . (those
   // go through string->number first) and that ends in `:`. Colon is not
   // a delimiter, so foo:bar: and foo:: are one keyword each.

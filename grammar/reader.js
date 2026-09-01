@@ -56,7 +56,6 @@ const comment = {
 const directive = {
   r6rs: token("#!r6rs"),
   r7rs: token(choice("#!fold-case", "#!no-fold-case")),
-  hashBang: (intertoken, symbol) => seq("#!", repeat(intertoken), symbol),
 };
 directive.guile = token(choice(
   directive.r6rs,
