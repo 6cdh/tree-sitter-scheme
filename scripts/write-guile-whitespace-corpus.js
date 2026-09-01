@@ -32,7 +32,8 @@ foo${vtab}bar
 ---
 
 (program
-  (symbol))
+  (symbol)
+  (ERROR))
 
 ===
 NEL is not whitespace
@@ -43,7 +44,8 @@ foo${nel}bar
 ---
 
 (program
-  (symbol))
+  (symbol)
+  (ERROR))
 
 ===
 Unicode space is not whitespace
@@ -54,7 +56,8 @@ foo${nbsp}bar
 ---
 
 (program
-  (symbol))
+  (symbol)
+  (ERROR))
 
 ===
 Formfeed is whitespace

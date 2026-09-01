@@ -11,11 +11,9 @@ module.exports = grammar({
 
   extras: _ => [],
 
-  // Guile directives and read-hash-extend change reader behavior. This
-  // static language accepts the concrete syntax union from
-  // docs/guile-scheme-syntax.md for the whole file: skip atmosphere,
-  // take a token until a delimiter, then classify. Runtime state and
-  // value checks stay in Guile.
+  // Guile reader options and directives change reader behavior. This static
+  // language accepts the published option-controlled syntax as a union for
+  // the whole file. Runtime state and value checks stay in Guile.
 
   rules: {
     // Keep the start rule first. Tree-sitter uses the first rule as the start.
@@ -62,7 +60,6 @@ module.exports = grammar({
       $.quasisyntax,
       $.unsyntax,
       $.unsyntax_splicing,
-      $.reader_extension,
     ),
 
     comment: _ => syntax.comment.line.guile,
@@ -71,8 +68,9 @@ module.exports = grammar({
       value => prec(100, value),
     ),
     sexp_comment: $ => syntax.comment.datum($._intertoken, $._datum),
-    // SCSH #! ... !#. Keep one token: the body has no nested comments or data.
-    script_comment: _ => syntax.comment.guileShebang,
+    script_comment: _ => syntax.comment.guileScript(
+      value => prec(100, value),
+    ),
     directive: _ => syntax.directive.guile,
 
     boolean: _ => syntax.boolean.r7rs,
@@ -86,13 +84,18 @@ module.exports = grammar({
       syntax.symbol.guileVertical,
       syntax.symbol.guileExtended(value => prec(100, value)),
     ),
-    // #: and : skip atmosphere, then reuse symbol. The symbol is the
-    // keyword name, not list-like contents, so it is a field. Postfix
-    // is one token: colon is not a delimiter, and that form is a leaf.
+    // Prefix names use r5rs identifiers so a leading colon is allowed.
+    // Ordinary symbols omit colon from initial so :NAME can be a prefix
+    // keyword. Postfix is one leaf token.
     keyword: $ => choice(
-      seq("#:", repeat($._intertoken), field("name", $.symbol)),
-      seq(":", repeat($._intertoken), field("name", $.symbol)),
+      syntax.keyword.hashColon(alias($._keyword_symbol, $.symbol)),
+      syntax.keyword.colon(alias($._keyword_symbol, $.symbol)),
       token(prec(1, syntax.keyword.guilePostfix)),
+    ),
+    _keyword_symbol: _ => choice(
+      syntax.symbol.r5rs,
+      syntax.symbol.guileVertical,
+      syntax.symbol.guileExtended(value => prec(100, value)),
     ),
 
     list: $ => choice(
@@ -104,7 +107,7 @@ module.exports = grammar({
     dot: _ => ".",
 
     vector: $ => syntax.vector.hash($._token),
-    byte_vector: $ => syntax.vector.vu8(choice($._intertoken, $.number)),
+    byte_vector: $ => syntax.vector.vu8($._token),
     // Keep the complete opening syntax in one token so `#f32(` beats `#f`
     // and `#u8(` beats `#u8"`. The prefix field covers that complete token.
     array: $ => seq(
@@ -116,9 +119,10 @@ module.exports = grammar({
       ")",
     ),
     bit_vector: _ => syntax.vector.guileBitvector,
-    byte_string: $ => seq("#u8", syntax.string($.escape_sequence)),
+    byte_string: $ => syntax.byteString(
+      alias(syntax.stringEscape.srfi207, $.escape_sequence),
+    ),
     special_object: _ => syntax.specialObject.guile,
-    reader_extension: _ => prec(-1, syntax.readerExtension),
 
     quote: $ => syntax.abbrev.quote($._intertoken, $._datum),
     quasiquote: $ => syntax.abbrev.quasiquote($._intertoken, $._datum),

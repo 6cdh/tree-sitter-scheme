@@ -72,8 +72,8 @@ const number = {
       r7rs_number_base(10),
       r7rs_number_base(16))),
 };
-// Guile string->number is R5RS 7.1 plus signed inf/nan. It is not the
-// R6RS/R7RS union: no mantissa width, and 1.0|53 is a symbol.
+// Published Guile numbers are R5RS 7.1 plus signed inf/nan. They are not the
+// R6RS/R7RS union: no mantissa width, and inf/nan cannot use #e.
 //
 // Do not use choice(number.r5rs, inf.0, nan.0). inf.0 and nan.0 can be a
 // component inside a larger number, so Guile needs one number definition
@@ -190,20 +190,29 @@ const stringEscape = {
           lineEnding.r7rs,
           repeat(intralineWhitespace.r7rs)),
         /[xX][0-9a-fA-F]+;/))),
+  // The Guile parser accepts the union of default and option-controlled string
+  // escapes. Published R6RS-style scalar escapes contain at most eight digits.
+  guile:
+    token(seq(
+      "\\",
+      choice(
+        /[|\\("0abfnrtv]/,
+        /x[0-9a-fA-F]{2}/,
+        /x[0-9a-fA-F]{1,8};/,
+        /u[0-9a-fA-F]{4}/,
+        /U[0-9a-fA-F]{6}/,
+        seq("\n", repeat(/[\t\p{Zs}]/))))),
+  // Published SRFI-207 byte-string escapes. Hungry continuation is newline
+  // plus later non-newline whitespace.
+  srfi207:
+    token(seq(
+      "\\",
+      choice(
+        /[abtnr"|\\]/,
+        /x0*[0-9a-fA-F]{1,2};/,
+        seq("\n", repeat(/[^\S\n]/))))),
 };
-// Guile string escapes from ice-9/read. The union accepts default \xHH
-// and optional r6rs \xHHHH; plus optional hungry spaces after \ newline.
-stringEscape.guile = token(seq(
-  "\\",
-  choice(
-    /[|\\("0abfnrtv]/,
-    /x[0-9a-fA-F]{2}/,
-    /x[0-9a-fA-F]+;/,
-    /u[0-9a-fA-F]{4}/,
-    /U[0-9a-fA-F]{6}/,
-    seq("\n", repeat(/[\t\p{Zs}]/)),
-  ),
-));
+// Chez composes stringEscape.r6rs, so it is attached after the object.
 stringEscape.chez = token(choice(
   stringEscape.r6rs,
   /\\'/,
@@ -217,6 +226,16 @@ const string = escape_sequence =>
       choice(
         escape_sequence,
         /[^"\\]+/)),
+    '"');
+
+// `#u8"` then SRFI-207 bytes U+0020 through U+007E except `"` and `\`.
+const byteString = escape_sequence =>
+  seq(
+    '#u8"',
+    repeat(
+      choice(
+        escape_sequence,
+        /[\x20-\x21\x23-\x5b\x5d-\x7e]+/)),
     '"');
 
 const chezBarSymbolPart = seq(
@@ -287,13 +306,17 @@ const symbol = {
       "{",
       "}")),
 };
-// Guile reads until a mode-dependent delimiter, then tries string->number
-// before falling back to a symbol. Do not use `\s`: vertical tab, NEL, and
-// Unicode separators are not Guile delimiters.
+// Published ordinary Guile symbols inherit the R5RS identifier grammar.
+// Leave colon out of the initial class so the static option union can expose
+// :NAME as a prefix keyword; colon remains valid after the first character.
 symbol.guile = token(seq(
-  /[^ \t\f\r\n()\[\]{}"'` ,;#:]/,
-  repeat(/[^ \t\f\r\n()\[\]{}";]/),
-));
+  choice(
+    seq(
+      /[A-Za-z!$%&*\/<=>?^_~]/,
+      repeat(/[A-Za-z!$%&*\/:<=>?^_~0-9+.@-]/)),
+    "+",
+    "-",
+    "...")));
 // Guile's #{...}# form stops at the first }#. Do not wrap this in token():
 // repeat(anyCharacter) would be greedy and take the last }#, and wrap(prec)
 // inside token() does not compete with anyCharacter in the same token.
@@ -310,19 +333,23 @@ symbol.guileVertical = token(seq(
   "|",
   repeat(choice(
     /[^|\\]+/,
-    /\\x[0-9a-fA-F]+;/,
-    /\\[abtnr|\\]/,
+    /\\x[0-9a-fA-F]{1,8};/,
+    /\\u[0-9a-fA-F]{4}/,
+    /\\U[0-9a-fA-F]{6}/,
+    /\\[|\\("0abfnrtv]/,
   )),
   "|",
 ));
 
 const keyword = {
-  // Ordinary token that does not start with a digit, +, -, or . (those
-  // go through string->number first) and that ends in `:`. Colon is not
-  // a delimiter, so foo:bar: and foo:: are one keyword each.
+  // Marker then name, no atmosphere. The owning grammar supplies the name
+  // node and any alias.
+  hashColon: name => seq("#:", field("name", name)),
+  colon: name => seq(":", field("name", name)),
+  // Published postfix keywords are R5RS identifiers ending in colon.
   guilePostfix: token(seq(
-    /[^ \t\f\r\n()\[\]{}"'` ,;#0-9+\-.:]/,
-    repeat(/[^ \t\f\r\n()\[\]{}";]/),
+    /[A-Za-z!$%&*\/<=>?^_~]/,
+    repeat(/[A-Za-z!$%&*\/:<=>?^_~0-9+.@-]/),
     ":",
   )),
 };
@@ -406,14 +433,19 @@ function guile_number_base(n) {
     16: /[0-9a-fA-F]/,
   };
 
-  const exactness =
+  const finiteExactness =
     optional(
       choice("#i", "#e", "#I", "#E"));
+  const infnanExactness = optional(choice("#i", "#I"));
   const radix = radixn[n];
-  const prefix =
+  const finitePrefix =
     choice(
-      seq(radix, exactness),
-      seq(exactness, radix));
+      seq(radix, finiteExactness),
+      seq(finiteExactness, radix));
+  const infnanPrefix =
+    choice(
+      seq(radix, infnanExactness),
+      seq(infnanExactness, radix));
 
   const sign = optional(/[+-]/);
   const digits = digitsn[n];
@@ -445,24 +477,32 @@ function guile_number_base(n) {
       : choice(
         uinteger,
         seq(uinteger, "/", uinteger));
-  // Inf is exactly inf.0 after a sign. Nan is nan. then a zero uinteger.
-  const infnan = choice(
-    /[iI][nN][fF]\.0/,
-    /[nN][aA][nN]\.0[0#]*/);
-  const real = choice(
-    seq(sign, ureal),
-    seq(/[+-]/, infnan));
-  const complex = choice(
-    real,
-    seq(real, "@", real),
+  const finiteReal = seq(sign, ureal);
+  const finiteComplex = choice(
+    finiteReal,
+    seq(finiteReal, "@", finiteReal),
     seq(
-      optional(real),
+      optional(finiteReal),
       /[+-]/,
-      optional(choice(ureal, infnan)),
+      optional(ureal),
       /[iI]/)
   );
 
-  return seq(prefix, complex);
+  const unsignedInfnan = choice("inf.0", "nan.0");
+  const infnanReal = seq(/[+-]/, unsignedInfnan);
+  const anyReal = choice(finiteReal, infnanReal);
+  const infnanComplex = choice(
+    infnanReal,
+    seq(infnanReal, "@", anyReal),
+    seq(finiteReal, "@", infnanReal),
+    seq(optional(anyReal), /[+-]/, unsignedInfnan, /[iI]/),
+    seq(infnanReal, /[+-]/, optional(ureal), /[iI]/),
+  );
+
+  return choice(
+    seq(finitePrefix, finiteComplex),
+    seq(infnanPrefix, infnanComplex),
+  );
 }
 
 function r6rs_number_base(n) {
@@ -675,6 +715,7 @@ function chez_arbitrary_radix_number() {
 
 module.exports = {
   boolean,
+  byteString,
   character,
   intralineWhitespace,
   keyword,

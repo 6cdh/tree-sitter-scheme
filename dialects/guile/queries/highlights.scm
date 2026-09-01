@@ -10,7 +10,6 @@
 (symbol) @variable
 (keyword) @constant
 (keyword name: (symbol) @constant)
-(reader_extension) @tag
 
 (string) @string
 (byte_string) @string

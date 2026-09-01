@@ -59,6 +59,9 @@ Group fragments by reader concept, such as booleans, symbols, comments, and
 vectors. Add another shared file only when an existing file becomes difficult
 to navigate.
 
+Named variants sit in the group object's body. Attach a variant after the
+object only when it reads a sibling key.
+
 Keep handwritten Tree-sitter expressions when moving syntax into `grammar/`.
 Do not replace a number grammar with a generic factory merely to reduce its
 line count. Use a factory when the syntax must receive a grammar node or a
@@ -109,6 +112,7 @@ namespace:
 
 ```javascript
 sexp_comment: $ => syntax.comment.datum($._intertoken, $._datum),
+keyword: $ => syntax.keyword.hashColon(alias($._keyword_symbol, $.symbol)),
 ```
 
 Pass a recursive rule into its factory instead of hard-coding the public rule

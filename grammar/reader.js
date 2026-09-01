@@ -29,19 +29,15 @@ const comment = {
     seq("#!", / +/, /[^\n\r]*/),
     seq("#!/", /[^\n\r]*/),
   )),
-  // Guile script comment: #! then a character that cannot start a
-  // directive name, through the first !#. Directives all start with a
-  // letter, so requiring a non-letter keeps #!r6rs from swallowing a
-  // later !#. Split the body at `!` so a later !# does not enlarge this
-  // token. Unknown letter names such as #!foo ... !# still need a later
-  // !# in Guile; Tree-sitter cannot express that without eating
-  // directives.
-  guileShebang: token(seq(
+  // Guile treats every unknown #! name as a script comment ending at the
+  // first !#. Keep this structural so the grammar's exact directive tokens
+  // win at their longer opening spellings and the closing priority stops at
+  // the first delimiter.
+  guileScript: wrap => seq(
     "#!",
-    /[ \t\f\r\n/]/,
-    repeat(choice(/[^!]+/, /![^#]/)),
-    "!#",
-  )),
+    repeat(anyCharacter),
+    wrap("!#"),
+  ),
   // The parser supplies the precedence wrapper because nested-comment and
   // closing-delimiter priorities belong to that parser's lexical domain.
   block: (self, wrap) =>
@@ -70,9 +66,9 @@ directive.chez = token(choice(
 ));
 
 const specialObject = {
-  // After #n, read takes one token starting with n. Shape keeps that
-  // token; it should be nil. docs/guile-scheme-syntax.md Special object.
-  guile: token(seq("#n", /[^ \t\f\r\n()\[\]{}";]*/)),
+  // Guile dispatches only on lowercase n. The rest is case-insensitive when
+  // that reader option is enabled, which the static dialect union accepts.
+  guile: token(seq("#n", /[iI][lL]/)),
   chez: token(choice("#!eof", "#!bwp", "#!base-rtd")),
 };
 
@@ -146,11 +142,10 @@ const abbrev = {
 };
 
 // Guile array prefix between `#` and `(`. The dialect keeps those delimiters
-// in the same token so `#f32(` beats boolean `#f`, `#u8(` beats byte-string
-// `#u8`, and `#0(` beats a one-character hash extension. Length is enough;
-// do not add prec(). `#(` is the vector rule, not an empty prefix. `#vu8(` is
-// the bytevector rule. Bare `#a(` and `#b(` are unknown hash objects; ranked
-// `#2a(` is an array.
+// in the same token so `#f32(` beats boolean `#f` and `#u8(` beats byte-string
+// `#u8`. Length is enough; do not add prec(). `#(` is the vector rule, not an
+// empty prefix. `#vu8(` is the bytevector rule. Bare `#a(` and `#b(` are
+// unknown hash objects; ranked `#2a(` is an array.
 function guile_array_prefix() {
   const rank = /[0-9]+/;
   const unsigned = /[0-9]+/;
@@ -163,7 +158,7 @@ function guile_array_prefix() {
   // is not an array. Unranked forms use only uniformTag (`#u8(`).
   const vectag = choice(uniformTag, "a", "b");
   const dimension = choice(
-    seq("@", optional("-"), unsigned, optional(seq(":", unsigned))),
+    seq("@", optional(/[+-]/), unsigned, optional(seq(":", unsigned))),
     seq(":", unsigned),
   );
   return choice(
@@ -192,13 +187,6 @@ const vector = {
   guileBitvector: token(seq("#*", /[01]*/)),
   guileArrayPrefix: guile_array_prefix(),
 };
-
-// An installed read-hash-extend callback is selected by one character after #.
-// Keep only that dispatch prefix here. The callback may consume the remaining
-// input, so the static grammar must not claim to know the extension payload.
-// Exclude Guile delimiters, not Unicode whitespace: vertical tab can follow #.
-// Digits after # start an array, so they are not extension prefixes.
-const readerExtension = token(/#[^ \t\f\r\n()\[\]{};"'`,#0-9]/);
 
 const box = (intertoken, datum) =>
   seq("#&", repeat(intertoken), field("value", datum));
@@ -241,7 +229,6 @@ module.exports = {
   list,
   primitive,
   record,
-  readerExtension,
   specialObject,
   vector,
 };

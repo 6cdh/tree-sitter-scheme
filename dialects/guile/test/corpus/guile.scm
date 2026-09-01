@@ -98,11 +98,12 @@ Guile numbers
 ===
 
 #b101 #o17 #xFF #e1.5 1/2 1+2i +inf.0
-+INF.0 +NaN.0 +nan.00 15## 1s2 1+inf.0i
+-nan.0 #i+inf.0 #x-inf.0 #i#x+nan.0 15## 1s2 1+inf.0i
 
 ---
 
 (program
+  (number)
   (number)
   (number)
   (number)
@@ -177,16 +178,11 @@ line standard: \n r6rs: \x3bb;"
 Guile symbols
 ===
 
-plain +foo .foo +.foo ->name
-1+ 123abc .e5 foo'bar foo#bar 1.0|53 inf.0
+plain lambda <= foo:bar abc123 + - ...
 
 ---
 
 (program
-  (symbol)
-  (symbol)
-  (symbol)
-  (symbol)
   (symbol)
   (symbol)
   (symbol)
@@ -200,10 +196,8 @@ plain +foo .foo +.foo ->name
 Guile keywords
 ===
 
-#:type #:+foo :prefix postfix:
-:foo:bar foo:bar: foo::
-#:   foo
-#:#|x|#bar
+#:type #:+ :prefix postfix:
+:foo:bar foo:bar: foo:: #:: :|bar baz| :#{two words}#
 
 ---
 
@@ -222,8 +216,20 @@ Guile keywords
   (keyword
     name: (symbol))
   (keyword
-    (block_comment)
+    name: (symbol))
+  (keyword
     name: (symbol)))
+
+===
+Guile keyword names are contiguous
+===
+
+#: name
+
+---
+
+(program
+  (ERROR))
 
 ===
 Guile lists and vectors
@@ -249,7 +255,7 @@ Guile lists and vectors
 Guile byte vectors
 ===
 
-#vu8(3 4) #vu8() #vu8(0 255 127 128)
+#vu8(3 4) #vu8() #vu8(#t "x" (a))
 
 ---
 
@@ -259,10 +265,10 @@ Guile byte vectors
     (number))
   (byte_vector)
   (byte_vector
-    (number)
-    (number)
-    (number)
-    (number)))
+    (boolean)
+    (string)
+    (list
+      (symbol))))
 
 ===
 Guile abbreviations
@@ -306,7 +312,7 @@ Guile extended symbols
 ===
 
 #{foo bar}# #{}# #{}}# #{}}}# #{{}}# #{a\x20;b}#
-|foo bar| @ @@ foo' \:
+|foo bar| |\0\f\v\(\u0041\U000041\x41;|
 
 ---
 
@@ -318,29 +324,32 @@ Guile extended symbols
   (symbol)
   (symbol)
   (symbol)
-  (symbol)
-  (symbol)
-  (symbol)
-  (keyword))
+  (symbol))
 
 ===
 Guile special objects and bit vectors
 ===
 
-#nil #nIL #nilly #n= #n# #NIL #*1010 #*
+#nil #nIL #*1010 #*
 
 ---
 
 (program
   (special_object)
   (special_object)
-  (special_object)
-  (special_object)
-  (special_object)
-  (reader_extension)
-  (symbol)
   (bit_vector)
   (bit_vector))
+
+===
+Guile special-object dispatch is lowercase
+===
+
+#NIL
+
+---
+
+(program
+  (ERROR))
 
 ===
 Guile array shapes
@@ -432,11 +441,15 @@ Guile shaped arrays
 Guile rank-one arrays
 ===
 
-#u8@2(1 2) #u8:2(1 2) #1(a b c d e f g h i j k l)
+#u8@2(1 2) #u8:2(1 2) #2u8@+1:2(1 2) #1(a b c d e f g h i j k l)
 
 ---
 
 (program
+  (array
+    prefix: (array_prefix)
+    (number)
+    (number))
   (array
     prefix: (array_prefix)
     (number)
@@ -490,37 +503,62 @@ Guile curly infix and neoteric source forms
     (symbol)))
 
 ===
-Guile directives are not script comments
+Guile script comments and directives
 ===
 
+#!unknown-name
+script body
+!#
 #!r6rs
 (define x 1)
-!#
 
 ---
 
 (program
+  (script_comment)
   (directive)
   (list
     (symbol)
     (symbol)
-    (number))
-  (symbol))
+    (number)))
 
 ===
 Guile byte strings
 ===
 
-#u8"bytes: \x41;"
+#u8"bytes: \a\b\t\n\r\"\|\x00041;\
+  continued"
 
 ---
 
 (program
   (byte_string
+    (escape_sequence)
+    (escape_sequence)
+    (escape_sequence)
+    (escape_sequence)
+    (escape_sequence)
+    (escape_sequence)
+    (escape_sequence)
+    (escape_sequence)
     (escape_sequence)))
 
 ===
-Guile dynamic reader extensions
+Guile byte strings reject non-SRFI-207 content
+===
+
+#u8"\0" #u8"é"
+
+---
+
+(program
+  (byte_string
+    (ERROR))
+  (byte_string
+    (ERROR)))
+
+===
+Reader extensions need runtime registration
 ===
 
 #y(a)
@@ -528,7 +566,7 @@ Guile dynamic reader extensions
 ---
 
 (program
-  (reader_extension)
+  (ERROR)
   (list
     (symbol)))
 
