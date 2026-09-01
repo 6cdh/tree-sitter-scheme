@@ -63,7 +63,7 @@ module.exports = grammar({
       $.datum_reference,
     ),
 
-    comment: _ => syntax.comment.line.r6rs,
+    comment: _ => syntax.comment.line.chez,
     block_comment: $ => syntax.comment.block(
       $.block_comment,
       value => prec(100, value),
@@ -88,11 +88,26 @@ module.exports = grammar({
     ),
     dot: _ => ".",
 
-    vector: $ => syntax.vector.hashLength($._token),
-    byte_vector: $ => syntax.vector.vu8Length(choice($._intertoken, $.number)),
-    fx_vector: $ => syntax.vector.vfx(choice($._intertoken, $.number)),
-    fl_vector: $ => syntax.vector.vfl(choice($._intertoken, $.number)),
-    stencil_vector: $ => syntax.vector.vs($._token),
+    vector: $ => syntax.vector.hashLength(
+      alias(/[0-9]+/, $.vector_length),
+      $._token,
+    ),
+    byte_vector: $ => syntax.vector.vu8Length(
+      alias(/[0-9]+/, $.vector_length),
+      choice($._intertoken, $.number),
+    ),
+    fx_vector: $ => syntax.vector.vfx(
+      alias(/[0-9]+/, $.vector_length),
+      choice($._intertoken, $.number),
+    ),
+    fl_vector: $ => syntax.vector.vfl(
+      alias(/[0-9]+/, $.vector_length),
+      choice($._intertoken, $.number),
+    ),
+    stencil_vector: $ => syntax.vector.vs(
+      alias(/[0-9]+/, $.stencil_mask),
+      $._token,
+    ),
 
     box: $ => syntax.box($._intertoken, $._datum),
     record: $ => syntax.record(
@@ -102,7 +117,7 @@ module.exports = grammar({
     ),
     gensym: $ => choice(
       syntax.gensym.pretty($.symbol),
-      syntax.gensym.unique($._intertoken, $.symbol),
+      syntax.gensym.unique($.symbol),
     ),
     special_object: _ => syntax.specialObject.chez,
 
@@ -114,9 +129,18 @@ module.exports = grammar({
     quasisyntax: $ => syntax.abbrev.quasisyntax($._intertoken, $._datum),
     unsyntax: $ => syntax.abbrev.unsyntax($._intertoken, $._datum),
     unsyntax_splicing: $ => syntax.abbrev.unsyntaxSplicing($._intertoken, $._datum),
-    primitive: $ => syntax.primitive($.symbol),
+    primitive: $ => syntax.primitive(
+      alias(token(seq("#", optional(/[23]/), "%")), $.primitive_prefix),
+      $.symbol,
+    ),
 
-    datum_label: $ => syntax.label.definition.chez($._intertoken, $._datum),
-    datum_reference: _ => syntax.label.reference,
+    datum_label: $ => syntax.label.definition.chez(
+      alias(/[0-9]+/, $.datum_label_id),
+      $._intertoken,
+      $._datum,
+    ),
+    datum_reference: $ => syntax.label.referenceWithField(
+      alias(/[0-9]+/, $.datum_label_id),
+    ),
   },
 });

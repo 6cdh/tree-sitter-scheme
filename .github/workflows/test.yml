@@ -37,6 +37,7 @@ jobs:
       - name: Test Chez dialect
         working-directory: dialects/chez
         run: |
+          node ../../scripts/write-chez-line-ending-corpus.js
           tree-sitter generate
           tree-sitter test
       - name: Test Guile dialect

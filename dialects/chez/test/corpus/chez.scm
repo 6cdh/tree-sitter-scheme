@@ -51,6 +51,28 @@ Chez booleans, characters, and strings
     (escape_sequence)))
 
 ===
+Chez character dispatch
+===
+
+#\space #\x41 #\X41 #\a4 #\000 #\( #\12 #\xy #\x41g
+
+---
+
+(program
+  (character)
+  (character)
+  (character)
+  (number)
+  (character)
+  (number)
+  (character)
+  (character)
+  (character)
+  (character)
+  (symbol)
+  (character))
+
+===
 Chez extended identifiers
 ===
 
@@ -77,10 +99,14 @@ Chez numbers
 
 #36rZZ #2r1010 #o1.4 #b1e10 #x1e20
 1/2 1.25 +nan.0 -inf.0 98## #e98##
+#16r1+1i #02r10 #x1|53
 
 ---
 
 (program
+  (number)
+  (number)
+  (number)
   (number)
   (number)
   (number)
@@ -108,24 +134,29 @@ Chez vectors
     (symbol)
     (symbol))
   (vector
+    length: (vector_length)
     (symbol)
     (symbol))
   (byte_vector
     (number)
     (number))
   (byte_vector
+    length: (vector_length)
     (number))
   (fx_vector
     (number)
     (number))
   (fx_vector
+    length: (vector_length)
     (number))
   (fl_vector
     (number)
     (number))
   (fl_vector
+    length: (vector_length)
     (number))
   (stencil_vector
+    mask: (stencil_mask)
     (symbol)
     (symbol)
     (symbol)))
@@ -146,39 +177,46 @@ Chez compound and graph data
 
 (program
   (box
-    (number))
+    value: (number))
   (record
-    (symbol)
+    name: (symbol)
     (number)
     (number))
   (record
-    (gensym
-      (symbol)
-      (symbol))
+    name: (gensym
+      pretty: (symbol)
+      unique: (symbol))
     (symbol))
   (gensym
-    (symbol))
+    pretty: (symbol))
   (gensym
-    (symbol)
-    (symbol))
+    pretty: (symbol)
+    unique: (symbol))
   (quote
     (list
       (datum_label
-        (list
+        label: (datum_label_id)
+        value: (list
           (symbol)))
       (dot)
-      (datum_reference)))
+      (datum_reference
+        label: (datum_label_id))))
   (datum_label
-    (list
+    label: (datum_label_id)
+    value: (list
       (symbol)
       (dot)
-      (datum_reference)))
+      (datum_reference
+        label: (datum_label_id))))
   (primitive
-    (symbol))
+    prefix: (primitive_prefix)
+    name: (symbol))
   (primitive
-    (symbol))
+    prefix: (primitive_prefix)
+    name: (symbol))
   (primitive
-    (symbol))
+    prefix: (primitive_prefix)
+    name: (symbol))
   (special_object)
   (special_object)
   (special_object)
@@ -195,7 +233,8 @@ Graph mark allows intertoken before the datum
 
 (program
   (datum_label
-    (list
+    label: (datum_label_id)
+    value: (list
       (symbol))))
 
 ===
@@ -247,3 +286,135 @@ R6RS syntax abbreviations remain available
     (symbol))
   (unsyntax_splicing
     (symbol)))
+
+===
+Chez reader cases borrowed from upstream mats
+===
+
+#{pretty	unique} #{bar baz}
+#\foo #\new #\bugsbunny #\x41 #\X41 #\401
+.. ... .foo .5 @home foo'bar foo#t
+#e#36rZZ #36r#eZZ #16r1+1i #36r1@1
+#5(one two three) #8vfx(5 7 9) #2vfl(5.0 7.0) #5vs(x y)
+'(#0=#[#{record uid} #1=(a b) #1#] . #0#)
+
+---
+
+(program
+  (gensym
+    pretty: (symbol)
+    unique: (symbol))
+  (gensym
+    pretty: (symbol)
+    unique: (symbol))
+  (character)
+  (character)
+  (character)
+  (character)
+  (character)
+  (number)
+  (character)
+  (symbol)
+  (symbol)
+  (symbol)
+  (number)
+  (symbol)
+  (symbol)
+  (quote
+    (symbol))
+  (symbol)
+  (boolean)
+  (number)
+  (number)
+  (number)
+  (number)
+  (vector
+    length: (vector_length)
+    (symbol)
+    (symbol)
+    (symbol))
+  (fx_vector
+    length: (vector_length)
+    (number)
+    (number)
+    (number))
+  (fl_vector
+    length: (vector_length)
+    (number)
+    (number))
+  (stencil_vector
+    mask: (stencil_mask)
+    (symbol)
+    (symbol))
+  (quote
+    (list
+      (datum_label
+        label: (datum_label_id)
+        value: (record
+          name: (gensym
+            pretty: (symbol)
+            unique: (symbol))
+          (datum_label
+            label: (datum_label_id)
+            value: (list
+              (symbol)
+              (symbol)))
+          (datum_reference
+            label: (datum_label_id))))
+      (dot)
+      (datum_reference
+        label: (datum_label_id)))))
+
+===
+Chez reader rejects invalid two-name gensym spacing
+===
+
+#{ pretty unique}
+
+---
+
+(program
+  (ERROR)
+  (symbol)
+  (symbol))
+
+===
+Backslash is ordinary inside bar groups
+===
+
+|a\| |\| |a\|\|
+
+---
+
+(program
+  (symbol)
+  (symbol)
+  (symbol))
+
+===
+Number-like symbols keep the complete Chez token
+===
+
+1#% 1#λ 1#\q 1#|x| 32/#|foo| 1.0|53abc
+
+---
+
+(program
+  (symbol)
+  (symbol)
+  (symbol)
+  (symbol)
+  (symbol)
+  (symbol))
+
+===
+Adjacent mantissa-width numbers stay separate
+===
+
+1.0|53 #16r1|53
+
+---
+
+(program
+  (number)
+  (number))

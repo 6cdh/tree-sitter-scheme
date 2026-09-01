@@ -11,6 +11,10 @@ const comment = {
     // separator. This contains the R5RS form and adds Unicode line endings.
     // Leave those characters out so whitespace can consume them.
     r6rs: token(seq(";", /[^\n\r\u{85}\u{2028}\u{2029}]*/)),
+    // Chez's reader stops a line comment at NEL and LS, but not at PS.
+    // Keep this separate from the R6RS fragment, whose line endings include
+    // paragraph separator.
+    chez: token(seq(";", /[^\n\r\u{85}\u{2028}]*/)),
     // R7RS 7.1.1 names only CR and LF as line endings. Other Unicode line
     // separators remain part of the comment.
     r7rs: token(seq(";", /[^\n\r]*/)),
@@ -22,7 +26,7 @@ const comment = {
   // Unix shebang. Require a space or slash after #! so this does not eat
   // #!r6rs, #!chezscheme, #!eof, or the other hash-bang tokens.
   shebang: token(choice(
-    seq("#!", /[ \t]+/, /[^\n\r]*/),
+    seq("#!", / +/, /[^\n\r]*/),
     seq("#!/", /[^\n\r]*/),
   )),
   // Guile script comment: #! then a character that cannot start a
@@ -52,7 +56,6 @@ const comment = {
 const directive = {
   r6rs: token("#!r6rs"),
   r7rs: token(choice("#!fold-case", "#!no-fold-case")),
-  chezscheme: token("#!chezscheme"),
   hashBang: (intertoken, symbol) => seq("#!", repeat(intertoken), symbol),
 };
 directive.guile = token(choice(
@@ -62,7 +65,7 @@ directive.guile = token(choice(
   "#!curly-infix-and-bracket-lists",
 ));
 directive.chez = token(choice(
-  directive.chezscheme,
+  "#!chezscheme",
   directive.r6rs,
   directive.r7rs,
 ));
@@ -79,10 +82,17 @@ const label = {
     // R7RS 2.4: `#⟨n⟩=⟨datum⟩` with no atmosphere after `=`.
     r7rs: datum => seq("#", /[0-9]+/, "=", datum),
     // Chez: `#n=` is one token; intertoken may follow before the datum.
-    chez: (intertoken, datum) =>
-      seq("#", /[0-9]+/, "=", repeat(intertoken), datum),
+    chez: (label, intertoken, datum) =>
+      seq(
+        "#",
+        field("label", label),
+        "=",
+        repeat(intertoken),
+        field("value", datum)),
   },
   reference: token(seq("#", /[0-9]+/, "#")),
+  referenceWithField: label =>
+    seq("#", field("label", label), "#"),
 };
 
 // Round, square, and curly lists share one shape: delimiters around repeated
@@ -168,11 +178,16 @@ const vector = {
   hash: token => seq("#(", repeat(token), ")"),
   u8: token => seq("#u8(", repeat(token), ")"),
   vu8: token => seq("#vu8(", repeat(token), ")"),
-  hashLength: token => seq("#", optional(/[0-9]+/), "(", repeat(token), ")"),
-  vu8Length: token => seq("#", optional(/[0-9]+/), "vu8(", repeat(token), ")"),
-  vfx: token => seq("#", optional(/[0-9]+/), "vfx(", repeat(token), ")"),
-  vfl: token => seq("#", optional(/[0-9]+/), "vfl(", repeat(token), ")"),
-  vs: token => seq("#", /[0-9]+/, "vs(", repeat(token), ")"),
+  hashLength: (length, token) =>
+    seq("#", optional(field("length", length)), "(", repeat(token), ")"),
+  vu8Length: (length, token) =>
+    seq("#", optional(field("length", length)), "vu8(", repeat(token), ")"),
+  vfx: (length, token) =>
+    seq("#", optional(field("length", length)), "vfx(", repeat(token), ")"),
+  vfl: (length, token) =>
+    seq("#", optional(field("length", length)), "vfl(", repeat(token), ")"),
+  vs: (mask, token) =>
+    seq("#", field("mask", mask), "vs(", repeat(token), ")"),
   // Literal `#` then `*`, then zero or more bit characters. `#*` is the
   // empty bitvector. This is not a regex "zero or more hashes".
   guileBitvector: token(seq("#*", /[01]*/)),
@@ -187,31 +202,35 @@ const vector = {
 const readerExtension = token(/#[^ \t\f\r\n()\[\]{};"'`,#0-9]/);
 
 const box = (intertoken, datum) =>
-  seq("#&", repeat(intertoken), datum);
+  seq("#&", repeat(intertoken), field("value", datum));
 
 const record = (intertoken, token, typeName) =>
   seq(
     "#[",
     repeat(intertoken),
-    typeName,
+    field("name", typeName),
     repeat(token),
     "]");
 
+// Chez's two-name gensym reader skips only these three characters between
+// names. It does not skip comments or other atmosphere at that point.
+const gensymSpace = token(repeat1(/[ \t\n]/));
+
 const gensym = {
-  pretty: symbol => seq("#:", symbol),
-  unique: (intertoken, symbol) =>
+  pretty: symbol => seq("#:", field("pretty", symbol)),
+  unique: symbol =>
     seq(
       "#{",
-      repeat(intertoken),
-      symbol,
-      repeat1(intertoken),
-      symbol,
-      repeat(intertoken),
+      field("pretty", symbol),
+      repeat1(gensymSpace),
+      field("unique", symbol),
       "}"),
 };
 
-const primitive = symbol =>
-  seq(token(seq("#", optional(/[23]/), "%")), symbol);
+const primitive = (prefix, symbol) =>
+  seq(
+    field("prefix", prefix),
+    field("name", symbol));
 
 module.exports = {
   abbrev,

@@ -34,6 +34,9 @@ function run(args) {
 if (dialect === "r6rs") {
   require("./write-r6rs-line-ending-corpus.js")();
 }
+if (dialect === "chez") {
+  require("./write-chez-line-ending-corpus.js")();
+}
 if (dialect === "r7rs") {
   require("./write-r7rs-line-ending-corpus.js")();
 }

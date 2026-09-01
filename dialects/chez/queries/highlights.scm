@@ -2,6 +2,10 @@
 (dot) @punctuation.delimiter
 
 (number) @number
+(vector_length) @number
+(stencil_mask) @number
+(datum_label_id) @number
+(primitive_prefix) @operator
 (character) @constant.builtin
 (boolean) @constant.builtin
 (special_object) @constant.builtin

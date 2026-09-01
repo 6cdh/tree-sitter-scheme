@@ -93,6 +93,10 @@ number.chez = token(choice(
   chez_arbitrary_radix_number(),
 ));
 
+// Chez rd-token-delimiter / rd-token-to-delimiter plus char-whitespace?.
+const chezNonDelimiter =
+  /[^\t\n\r\f\v\u{85}\p{Zs}\p{Zl}\p{Zp}\(\)\[\]\{\}"'`,;#]/;
+
 const character = {
   r5rs:
     token(seq(
@@ -123,24 +127,30 @@ const character = {
   // the letter u.
   steelScheme:
     token(seq("#\\", /u[0-9a-fA-F]+/)),
+  // After #\ , Guile takes one delimiter character, or one token until a
+  // delimiter. Names, octal, and hex classify that token; they are not
+  // lexer alternatives. docs/guile-scheme-syntax.md Character.
+  guile:
+    token(seq(
+      "#\\",
+      choice(
+        /[ \t\f\r\n()\[\]{}";]/,
+        /[^ \t\f\r\n()\[\]{}";]+/,
+      ))),
+  // Chez rd-token-char. Lowercase x plus a hex digit starts hex; a later
+  // non-hex non-delimiter turns that same token into a name. Two ASCII
+  // letters start a name. Two or three octal digits are the octal form.
+  // Otherwise one character. Name-table, scalar-value, and octal-range
+  // checks are runtime. docs/chez-scheme-syntax.md Character.
+  chez:
+    token(seq(
+      "#\\",
+      choice(
+        seq("x", /[0-9a-fA-F]+/, repeat(chezNonDelimiter)),
+        seq(/[a-wyzA-Z]/, /[a-zA-Z]/, repeat(chezNonDelimiter)),
+        /[0-7]{2,3}/,
+        anyCharacter))),
 };
-// After #\ , Guile takes one delimiter character, or one token until a
-// delimiter. Names, octal, and hex classify that token; they are not
-// lexer alternatives. docs/guile-scheme-syntax.md Character.
-character.guile = token(seq(
-  "#\\",
-  choice(
-    /[ \t\f\r\n()\[\]{}";]/,
-    /[^ \t\f\r\n()\[\]{}";]+/,
-  ),
-));
-character.chez = token(choice(
-  character.r6rs,
-  seq("#\\", choice(
-    /[0-7]{3}/,
-    "bel", "ls", "nel", "rubout", "vt",
-  )),
-));
 
 // String line continuations use dialect-specific whitespace and endings.
 const intralineWhitespace = {
@@ -207,6 +217,29 @@ const string = escape_sequence =>
         /[^"\\]+/)),
     '"');
 
+const chezBarSymbolPart = seq(
+  "|",
+  repeat(/[^|]+/),
+  "|",
+);
+const chezSymbolPart = choice(
+  /[^\s\u{85}()\[\]{}"'`,;#\\|]+/,
+  /\\x[0-9a-fA-F]+;/,
+  /\\[^x]/,
+  chezBarSymbolPart,
+);
+const chezSymbolStartPart = choice(
+  /[^\s\u{85}()\[\]{}"'`,;#\\|0-9+\-.]+/,
+  /\\x[0-9a-fA-F]+;/,
+  /\\[^x]/,
+  chezBarSymbolPart,
+);
+// Once Chez dispatches to the number-or-symbol reader, `#`, `|`, and `\` are
+// ordinary non-delimiters. If numeric conversion fails, the complete token is
+// a symbol. This separate shape keeps a `|` in 1.0|53 from opening a bar group
+// that could consume whitespace and a later mantissa-width separator.
+const chezNumberSymbolMember = /[^\s\u{85}()\[\]{}"'`,;]/;
+
 const symbol = {
   r5rs:
     token(choice(
@@ -244,15 +277,11 @@ const symbol = {
   // delimiter, so 32/#|foo| is one identifier.
   chez:
     token(choice(
-      /[0-9+\.\-][0-9A-Za-z+\.\-\/@|#]*#[0-9A-Za-z+\.\-\/@|#]*/,
-      repeat1(choice(
-        /[^\s()\[\]{}"'`,;#\\|]+/,
-        /\\x[0-9a-fA-F]+;/,
-        /\\[^x\r\n]/,
-        seq(
-          "|",
-          repeat(choice(/[^|\\]+/, /\\./)),
-          "|"))),
+      seq(/[0-9]/, repeat(chezNumberSymbolMember)),
+      seq(/[+\-.]/, repeat1(chezNumberSymbolMember)),
+      seq(chezSymbolStartPart, repeat(chezSymbolPart)),
+      "+",
+      "-",
       "{",
       "}")),
 };
@@ -609,13 +638,15 @@ function chez_nondecimal_number_base(n) {
     seq(exactness, radix));
   const sign = optional(/[+-]/);
   const exponent = optional(seq(/[eEsSfFdDlL]/, sign, repeat1(digit)));
+  // strnum allows `|` plus decimal digits after an integer or float in any
+  // radix. A ratio has no mantissa width: `#x1/2|53` is invalid.
+  const mantissaWidth = optional(seq("|", repeat1(/[0-9]/)));
   const uinteger = repeat1(digit);
   const ureal = choice(
-    uinteger,
     seq(uinteger, "/", uinteger),
-    seq(".", repeat1(digit), exponent),
-    seq(uinteger, ".", repeat(digit), exponent),
-    seq(uinteger, exponent));
+    seq(".", repeat1(digit), exponent, mantissaWidth),
+    seq(uinteger, ".", repeat(digit), exponent, mantissaWidth),
+    seq(uinteger, exponent, mantissaWidth));
   const real = seq(sign, ureal);
 
   return seq(prefix, choice(
@@ -626,16 +657,17 @@ function chez_nondecimal_number_base(n) {
 
 // Digit validity for #nr depends on n and cannot be encoded by Tree-sitter's
 // regular lexer without listing 35 number towers. Chez performs that semantic
-// check. Keep the token bounded to the documented radix range and number
-// punctuation so editor input remains one number node.
+// check. Keep the prefix valued 2 through 36, including leading zeros, and
+// consume the complete number-like token so `#16r1+1i` stays one node. A
+// letter that is a digit in that radix is not classified here as `i` or inf.
 function chez_arbitrary_radix_number() {
   const exactness = /#[iIeE]/;
-  const radix = /#(?:[2-9]|[12][0-9]|3[0-6])[rR]/;
+  const radix = /#0*(?:[2-9]|[12][0-9]|3[0-6])[rR]/;
   const prefix = choice(
     seq(radix, optional(exactness)),
     seq(optional(exactness), radix));
 
-  return seq(prefix, /[+\-]?[0-9A-Za-z.\/@|#]+/);
+  return seq(prefix, /[0-9A-Za-z+\-.\/@|#]+/);
 }
 
 // number }}}

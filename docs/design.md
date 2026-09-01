@@ -202,6 +202,7 @@ dialects.
 Scripts generate corpus cases whose bytes are easy to damage in an editor:
 
 - R6RS line endings: `scripts/write-r6rs-line-ending-corpus.js`
+- Chez line endings: `scripts/write-chez-line-ending-corpus.js`
 - Guile whitespace: `scripts/write-guile-whitespace-corpus.js`
 
 Do not copy those generated cases into handwritten corpus files. After
