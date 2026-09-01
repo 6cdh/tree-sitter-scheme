@@ -14,6 +14,7 @@ This page contains all visible nodes in yaml format.
 - number
 - symbol # R5RS, R6RS, or R7RS identifier
 - datum_label # `#0=` followed by one datum
+- datum_label_id # decimal digits in `#0=` and `#0#`
 - datum_reference # `#0#`
 
 - list # `()` or `[]` list; may contain `dot`

@@ -75,7 +75,8 @@ const specialObject = {
 const label = {
   definition: {
     // R7RS 2.4: `#⟨n⟩=⟨datum⟩` with no atmosphere after `=`.
-    r7rs: datum => seq("#", /[0-9]+/, "=", datum),
+    r7rs: (label, datum) =>
+      seq("#", field("label", label), "=", datum),
     // Chez: `#n=` is one token; intertoken may follow before the datum.
     chez: (label, intertoken, datum) =>
       seq(
@@ -85,8 +86,7 @@ const label = {
         repeat(intertoken),
         datum),
   },
-  reference: token(seq("#", /[0-9]+/, "#")),
-  referenceWithField: label =>
+  reference: label =>
     seq("#", field("label", label), "#"),
 };
 

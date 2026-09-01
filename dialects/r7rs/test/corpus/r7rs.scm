@@ -142,10 +142,12 @@ R7RS compound data and labels
       (unquote_splicing
         (number))))
   (datum_label
+    label: (datum_label_id)
     (list
       (symbol)
       (dot)
-      (datum_reference))))
+      (datum_reference
+        label: (datum_label_id)))))
 
 ==================
 R6RS square lists are not R7RS

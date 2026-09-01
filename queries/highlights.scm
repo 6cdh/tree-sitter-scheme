@@ -2,6 +2,7 @@
 (dot) @punctuation.delimiter
 
 (number) @number
+(datum_label_id) @number
 (character) @constant.builtin
 (boolean) @constant.builtin
 (symbol) @variable

@@ -199,7 +199,9 @@ byte vector and datum labels
     (number)
     (number))
   (datum_label
+    label: (datum_label_id)
     (list
       (symbol)
       (dot)
-      (datum_reference))))
+      (datum_reference
+        label: (datum_label_id)))))

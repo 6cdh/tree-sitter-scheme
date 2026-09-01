@@ -48,7 +48,18 @@
   {
     "type": "datum_label",
     "named": true,
-    "fields": {},
+    "fields": {
+      "label": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "datum_label_id",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": false,
       "required": true,
@@ -126,6 +137,22 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "datum_reference",
+    "named": true,
+    "fields": {
+      "label": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "datum_label_id",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -1429,7 +1456,7 @@
     "named": true
   },
   {
-    "type": "datum_reference",
+    "type": "datum_label_id",
     "named": true
   },
   {

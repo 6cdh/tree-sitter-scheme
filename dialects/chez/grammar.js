@@ -139,7 +139,7 @@ module.exports = grammar({
       $._intertoken,
       $._datum,
     ),
-    datum_reference: $ => syntax.label.referenceWithField(
+    datum_reference: $ => syntax.label.reference(
       alias(/[0-9]+/, $.datum_label_id),
     ),
   },
