@@ -1,4 +1,46 @@
 ===
+Chez script interpreter line is first
+===
+#!/usr/bin/env scheme
+(define answer #t)
+
+---
+
+(program
+  (shebang)
+  (list
+    (symbol)
+    (symbol)
+    (boolean)))
+
+===
+Chez space interpreter line is first
+===
+#! /usr/bin/scheme --script
+answer
+
+---
+
+(program
+  (shebang)
+  (symbol))
+
+===
+Chez interpreter line after a datum is an error
+===
+
+a
+#!/bin/false
+b
+
+---
+
+(program
+  (symbol)
+  (ERROR)
+  (symbol))
+
+===
 Chez comments and directives
 ===
 
@@ -49,6 +91,20 @@ Chez booleans, characters, and strings
     (escape_sequence)
     (escape_sequence)
     (escape_sequence)))
+
+===
+Malformed Chez booleans retain editor recovery shape
+===
+
+#tfoo #truex
+
+---
+
+(program
+  (boolean)
+  (symbol)
+  (boolean)
+  (symbol))
 
 ===
 Chez valid character dispatch
@@ -181,8 +237,6 @@ Chez compound and graph data
 '(#1=(a) . #1#) #0=(a . #0#)
 #%car #2%car #3%car
 #!eof #!bwp #!base-rtd
-#! /usr/bin/scheme --script
-#!/usr/bin/env scheme
 
 ---
 
@@ -230,9 +284,7 @@ Chez compound and graph data
     (symbol))
   (special_object)
   (special_object)
-  (special_object)
-  (shebang)
-  (shebang))
+  (special_object))
 
 ===
 Graph mark allows intertoken before the datum
@@ -385,9 +437,7 @@ Chez reader rejects invalid two-name gensym spacing
 ---
 
 (program
-  (ERROR)
-  (symbol)
-  (symbol))
+  (ERROR))
 
 ===
 Backslash is ordinary inside bar groups

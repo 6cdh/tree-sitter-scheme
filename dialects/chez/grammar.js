@@ -18,7 +18,8 @@ module.exports = grammar({
 
   rules: {
     // Keep the start rule first. Tree-sitter uses the first rule as the start.
-    program: $ => repeat($._token),
+    // The script loader recognizes an interpreter line only at file start.
+    program: $ => seq(optional($.shebang), repeat($._token)),
 
     _token: $ => choice(
       $._intertoken,
@@ -26,12 +27,12 @@ module.exports = grammar({
     ),
 
     _intertoken: $ => choice(
-      core.whitespace.r6rs,
+      // Keep long lexical expressions out of parser-rule expansion.
+      token(core.whitespace.r6rs),
       $.comment,
       $.block_comment,
       $.sexp_comment,
       $.directive,
-      $.shebang,
     ),
 
     _datum: $ => choice(
@@ -63,6 +64,9 @@ module.exports = grammar({
       $.datum_reference,
     ),
 
+    // Keep the line-comment delimiter and body separate. Tokenizing the whole
+    // comment changes recovery of malformed gensyms with two names, exposing
+    // their trailing text as unrelated symbols.
     comment: _ => syntax.comment.line.chez,
     block_comment: $ => syntax.comment.block(
       $.block_comment,
@@ -72,15 +76,19 @@ module.exports = grammar({
     directive: _ => syntax.directive.chez,
     shebang: _ => syntax.comment.shebang,
 
+    // The shared spelling leaves a trailing delimiter to the parser. When an
+    // invalid name such as #tfoo is edited, it recovers as #t then foo.
     boolean: _ => syntax.boolean.r7rs,
-    number: _ => syntax.number.chez,
+    // These complete reader tokens must be lexed atomically. Leaving their
+    // large expressions as parser rules makes generation expand for minutes.
+    number: _ => token(syntax.number.chez),
     character: _ => syntax.character.chez,
 
     string: $ => syntax.string($.escape_sequence),
     escape_sequence: _ => syntax.stringEscape.chez,
     // When the complete number and identifier spellings are equally long,
     // this dialect lists number before symbol.
-    symbol: _ => syntax.symbol.chez,
+    symbol: _ => token(syntax.symbol.chez),
 
     list: $ => choice(
       syntax.list.round(choice($._token, $.dot)),

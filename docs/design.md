@@ -10,6 +10,8 @@ Design principles:
 
 - Each grammar makes its accepted reader syntax visible.
 - Shared fragments reuse reader concepts without hiding a complete grammar.
+- Tokenize complete lexical spellings in the owning `grammar.js` whenever their
+  boundaries allow it; keep reusable fragments composable.
 - Trees serve editor tools, with explicit limits on validation and reader state.
 - Prefer an SRFI name for a reusable fragment variant when the syntax comes from an SRFI.
 - Prefer a named group for a reusable fragment.
@@ -192,18 +194,21 @@ fragment.
 
 ### Lexical tokens
 
-A reusable fragment exposes its top-level composition. The owning grammar
-decides whether a complete number, symbol, whitespace run, comment, or other
-fragment must be one lexer token:
+A reusable fragment exposes its top-level composition. In the owning
+`grammar.js`, prefer `token(...)` for each complete lexical spelling, including
+numbers, symbols, whitespace runs, and comments, when its boundary can be
+recognized without parser nodes or contextual tokenization. This keeps large
+lexical expressions out of parser-rule expansion and can make generation much
+faster:
 
 ```javascript
 number: _ => token(syntax.number.r7rs),
 symbol: _ => token(syntax.symbol.chicken),
 ```
 
-Do not wrap a complete exported reader spelling in `token(...)` merely because
-one current grammar wants one leaf. This keeps fragments composable and avoids
-nested token boundaries when another grammar builds a larger lexical choice.
+Keep complete exported reader spellings unwrapped in reusable fragments.
+The consuming grammar chooses the token boundary, so another grammar can
+compose the same fragment into a larger lexical choice without nested tokens.
 
 A fragment may still contain `token(...)` when the token is a context-local
 part of the reader spelling. Keep the shared delimiter visible to the parser,
@@ -225,8 +230,8 @@ not a complete reader spelling. Internal whitespace or opaque bodies may also
 be tokenized when their boundary is intrinsic to the surrounding factory and
 cannot compete as a standalone grammar node.
 
-When a complete spelling must be one token, wrap the raw fragment at its
-owning grammar rule. When every selected fragment is raw at that level,
+Wrap a complete spelling at its owning grammar rule whenever the lexical
+boundary permits it. When every selected fragment is raw at that level,
 wrapping the complete call-site `choice(...)` can also shrink the lexer and
 stabilize token selection. Do not wrap across a fragment's contextual token.
 The grammar owns that decision because only the grammar knows all competing
