@@ -163,9 +163,11 @@ directory.
 
 ## Shared fragment contracts
 
-Import `core` and `syntax` from `grammar/index.js`. Their definitions live in
-`grammar/core.js`, `grammar/literals.js`, and `grammar/reader.js`; those files
-own the fragment catalog.
+Import `core` and `syntax` from `grammar/index.js`. The index maps each
+fragment group to its definition in `grammar/`. `core.js` owns shared
+characters and whitespace; `literals.js`, `number.js`, `string.js`, and
+`symbol.js` own literal syntax; `intertoken.js`, `collections.js`,
+`abbreviations.js`, and `hash-forms.js` own reader syntax.
 
 Group fragments by reader concept, such as booleans, symbols, comments, and
 vectors. Put a reusable fragment in such a group rather than exporting a bare
