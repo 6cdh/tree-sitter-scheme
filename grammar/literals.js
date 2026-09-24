@@ -1,8 +1,9 @@
 const { anyCharacter } = require("./core");
 
-// A plain lexical fragment owns token(...). A grammar uses one fragment
-// directly or wraps a composition of several fragments in one token(...).
-// string stays a factory because it has child nodes.
+// Reusable fragments expose their composition. The owning grammar wraps a
+// complete fragment in token(...) when the lexer needs one leaf. Within a
+// fragment, token(...) wraps only a contextual body after a shared prefix,
+// such as an R7RS boolean name after `#`.
 
 const r6rsHexEscape = /\\x[0-9a-fA-F]+;/;
 
@@ -41,36 +42,36 @@ const r7rsBareSymbolMembers = [
 ];
 
 const boolean = {
-  r5rs: token(seq("#", /[tTfF]/)),
-  r6rs: token(seq("#", /[tTfF]/)),
-  r7rs:
-    token(seq(
-      "#",
-      choice(
-        /[tTfF]/,
-        /[tT][rR][uU][eE]/,
-        /[fF][aA][lL][sS][eE]/))),
+  r5rs: seq("#", /[tTfF]/),
+  r6rs: seq("#", /[tTfF]/),
+  // Keep `#` visible to the parser. The following name then competes with
+  // other hash-dispatch bodies, such as CHICKEN's `f32` number-vector tag.
+  r7rs: seq("#", token(choice(
+    /[tTfF]/,
+    /[tT][rR][uU][eE]/,
+    /[fF][aA][lL][sS][eE]/,
+  ))),
 };
 
 const number = {
   r5rs:
-    token(choice(
+    choice(
       r5rs_number_base(2),
       r5rs_number_base(8),
       r5rs_number_base(10),
-      r5rs_number_base(16))),
+      r5rs_number_base(16)),
   r6rs:
-    token(choice(
+    choice(
       r6rs_number_base(2),
       r6rs_number_base(8),
       r6rs_number_base(10),
-      r6rs_number_base(16))),
+      r6rs_number_base(16)),
   r7rs:
-    token(choice(
+    choice(
       r7rs_number_base(2),
       r7rs_number_base(8),
       r7rs_number_base(10),
-      r7rs_number_base(16))),
+      r7rs_number_base(16)),
 };
 // Published Guile numbers are R5RS 7.1 plus signed inf/nan. They are not the
 // R6RS/R7RS union: no mantissa width, and inf/nan cannot use #e.
@@ -78,20 +79,19 @@ const number = {
 // Do not use choice(number.r5rs, inf.0, nan.0). inf.0 and nan.0 can be a
 // component inside a larger number, so Guile needs one number definition
 // that forks the R5RS number rules.
-number.guile = token(choice(
+number.guile = choice(
   guile_number_base(2),
   guile_number_base(8),
   guile_number_base(10),
-  guile_number_base(16)));
-number.chez = token(choice(
+  guile_number_base(16));
+number.chez = choice(
   number.r6rs,
   // Chez mode keeps the R5RS `#` digit placeholders that R6RS removed.
   number.r5rs,
   chez_nondecimal_number_base(2),
   chez_nondecimal_number_base(8),
   chez_nondecimal_number_base(16),
-  chez_arbitrary_radix_number(),
-));
+  chez_arbitrary_radix_number());
 
 // Chez rd-token-delimiter / rd-token-to-delimiter plus char-whitespace?.
 const chezNonDelimiter =
@@ -99,41 +99,66 @@ const chezNonDelimiter =
 
 const character = {
   r5rs:
-    token(seq(
+    seq(
       "#\\",
-      choice(
+      token(choice(
         /[sS][pP][aA][cC][eE]/,
         /[nN][eE][wW][lL][iI][nN][eE]/,
         anyCharacter))),
   r6rs:
-    token(seq(
+    seq(
       "#\\",
-      choice(
+      token(choice(
         "nul", "alarm", "backspace", "tab",
         "linefeed", "newline", "vtab", "page",
         "return", "esc", "space", "delete",
         /x[0-9a-fA-F]+/,
         anyCharacter))),
   r7rs:
-    token(seq(
+    seq(
       "#\\",
-      choice(
+      token(choice(
         "alarm", "backspace", "delete",
         "escape", "newline", "null",
         "return", "space", "tab",
         /[xX][0-9a-fA-F]+/,
         anyCharacter))),
-  // `/u[0-9a-fA-F]+/` needs at least one hex digit, so `#\u` is still
-  // the letter u.
+  // CHICKEN adds exact-width u/U escapes and five character names to R7RS.
+  // The dialect accepts case-folded character names as part of its static
+  // reader-mode union. The u/U prefixes remain case-sensitive.
+  chicken:
+    seq(
+      "#\\",
+      token(choice(
+        /[aA][lL][aA][rR][mM]/,
+        /[bB][aA][cC][kK][sS][pP][aA][cC][eE]/,
+        /[dD][eE][lL][eE][tT][eE]/,
+        /[eE][sS][cC][aA][pP][eE]/,
+        /[nN][eE][wW][lL][iI][nN][eE]/,
+        /[nN][uU][lL][lL]/,
+        /[rR][eE][tT][uU][rR][nN]/,
+        /[sS][pP][aA][cC][eE]/,
+        /[tT][aA][bB]/,
+        /[lL][iI][nN][eE][fF][eE][eE][dD]/,
+        /[vV][tT][aA][bB]/,
+        /[nN][uU][lL]/,
+        /[pP][aA][gG][eE]/,
+        /[eE][sS][cC]/,
+        /[xX][0-9a-fA-F]+/,
+        /u[0-9a-fA-F]{4}/,
+        /U[0-9a-fA-F]{8}/,
+        anyCharacter))),
+  // `/u[0-9a-fA-F]+/` requires a hex digit, so `#\u` remains the
+  // character u.
   steelScheme:
-    token(seq("#\\", /u[0-9a-fA-F]+/)),
+    seq("#\\", /u[0-9a-fA-F]+/),
   // After #\ , Guile takes one delimiter character, or one token until a
   // delimiter. Names, octal, and hex classify that token; they are not
   // lexer alternatives. docs/guile-scheme-syntax.md Character.
   guile:
-    token(seq(
+    seq(
       "#\\",
-      choice(
+      token(choice(
         /[ \t\f\r\n()\[\]{}";]/,
         /[^ \t\f\r\n()\[\]{}";]+/,
       ))),
@@ -145,9 +170,9 @@ const character = {
   // scalar-value, and octal-range checks, so malformed forms recover as a
   // character plus any following tokens. docs/chez-scheme-syntax.md Character.
   chez:
-    token(seq(
+    seq(
       "#\\",
-      choice(
+      token(choice(
         seq("x", /[0-9a-fA-F]+/, repeat(chezNonDelimiter)),
         seq(/[a-wyzA-Z]/, /[a-zA-Z]/, repeat(chezNonDelimiter)),
         /[0-7]{3}/,
@@ -165,59 +190,60 @@ const lineEnding = {
   r7rs: /(\r\n)|[\r\n]/,
 };
 
+const r6rsStringEscapeBody = choice(
+  /[abtnvfr"\\]/,
+  /x[0-9a-fA-F]+;/,
+  seq(
+    repeat(intralineWhitespace.r6rs),
+    lineEnding.r6rs,
+    repeat(intralineWhitespace.r6rs)),
+);
+
 const stringEscape = {
-  r5rs:
-    token(choice(
-      "\\\"",
-      "\\\\")),
-  r6rs:
-    token(seq(
-      "\\",
-      choice(
-        /[abtnvfr"\\]/,
-        /x[0-9a-fA-F]+;/,
-        seq(
-          repeat(intralineWhitespace.r6rs),
-          lineEnding.r6rs,
-          repeat(intralineWhitespace.r6rs))))),
-  r7rs:
-    token(seq(
-      "\\",
-      choice(
-        /[abtnr"\\]/,
-        seq(
-          repeat(intralineWhitespace.r7rs),
-          lineEnding.r7rs,
-          repeat(intralineWhitespace.r7rs)),
-        /[xX][0-9a-fA-F]+;/))),
+  r5rs: seq("\\", /["\\]/),
+  r6rs: seq("\\", token(r6rsStringEscapeBody)),
+  r7rs: seq("\\", token(choice(
+    /[abtnr"\\]/,
+    seq(
+      repeat(intralineWhitespace.r7rs),
+      lineEnding.r7rs,
+      repeat(intralineWhitespace.r7rs)),
+    /[xX][0-9a-fA-F]+;/,
+  ))),
+  chicken: seq("\\", token(choice(
+    /[abtnrvf"\\|']/,
+    /x[0-9a-fA-F]{2};/,
+    /u[0-9a-fA-F]{4}/,
+    /U[0-9a-fA-F]{8}/,
+    /[0-7]{3}/,
+    seq(
+      repeat(intralineWhitespace.r7rs),
+      lineEnding.r7rs,
+      repeat(intralineWhitespace.r7rs)),
+  ))),
   // The Guile parser accepts the union of default and option-controlled string
   // escapes. Published R6RS-style scalar escapes contain at most eight digits.
-  guile:
-    token(seq(
-      "\\",
-      choice(
-        /[|\\("0abfnrtv]/,
-        /x[0-9a-fA-F]{2}/,
-        /x[0-9a-fA-F]{1,8};/,
-        /u[0-9a-fA-F]{4}/,
-        /U[0-9a-fA-F]{6}/,
-        seq("\n", repeat(/[\t\p{Zs}]/))))),
+  guile: seq("\\", token(choice(
+    /[|\\("0abfnrtv]/,
+    /x[0-9a-fA-F]{2}/,
+    /x[0-9a-fA-F]{1,8};/,
+    /u[0-9a-fA-F]{4}/,
+    /U[0-9a-fA-F]{6}/,
+    seq("\n", repeat(/[\t\p{Zs}]/)),
+  ))),
   // Published SRFI-207 byte-string escapes. Hungry continuation is newline
   // plus later non-newline whitespace.
-  srfi207:
-    token(seq(
-      "\\",
-      choice(
-        /[abtnr"|\\]/,
-        /x0*[0-9a-fA-F]{1,2};/,
-        seq("\n", repeat(/[^\S\n]/))))),
+  srfi207: seq("\\", token(choice(
+    /[abtnr"|\\]/,
+    /x0*[0-9a-fA-F]{1,2};/,
+    seq("\n", repeat(/[^\S\n]/)),
+  ))),
+  chez: seq("\\", token(choice(
+    r6rsStringEscapeBody,
+    "'",
+    /[0-7]{3}/,
+  ))),
 };
-// Chez composes stringEscape.r6rs, so it is attached after the object.
-stringEscape.chez = token(choice(
-  stringEscape.r6rs,
-  /\\'/,
-  /\\[0-7]{3}/,
-));
 
 const string = escape_sequence =>
   seq(
@@ -228,15 +254,25 @@ const string = escape_sequence =>
         /[^"\\]+/)),
     '"');
 
-// `#u8"` then SRFI-207 bytes U+0020 through U+007E except `"` and `\`.
-const byteString = escape_sequence =>
-  seq(
-    '#u8"',
-    repeat(
-      choice(
-        escape_sequence,
-        /[\x20-\x21\x23-\x5b\x5d-\x7e]+/)),
-    '"');
+const byteString = {
+  // `#u8"` then SRFI-207 bytes U+0020 through U+007E except `"` and `\`.
+  srfi207: escape_sequence =>
+    seq(
+      '#u8"',
+      repeat(
+        choice(
+          escape_sequence,
+          /[\x20-\x21\x23-\x5b\x5d-\x7e]+/)),
+      '"'),
+  chicken: escape_sequence =>
+    seq(
+      '#u8"',
+      repeat(
+        choice(
+          escape_sequence,
+          /[^"\\]+/)),
+      '"'),
+};
 
 const chezBarSymbolPart = seq(
   "|",
@@ -263,23 +299,23 @@ const chezNumberSymbolMember = /[^\s\u{85}()\[\]{}"'`,;]/;
 
 const symbol = {
   r5rs:
-    token(choice(
+    choice(
       seq(
         /[A-Za-z!$%&*\/:<=>?^_~]/,
         repeat(/[A-Za-z!$%&*\/:<=>?^_~0-9+.@-]/)),
       "+",
       "-",
-      "...")),
+      "..."),
   // R6RS identifier: initial subsequent* | peculiar identifier.
   r6rs:
-    token(choice(
+    choice(
       seq(r6rsInitial, repeat(r6rsSubsequent)),
       "+",
       "-",
       "...",
-      seq("->", repeat(r6rsSubsequent)))),
+      seq("->", repeat(r6rsSubsequent))),
   r7rs:
-    token(choice(
+    choice(
       ...r7rsBareSymbolMembers,
       seq(
         "|",
@@ -289,7 +325,7 @@ const symbol = {
             /\\[xX][0-9a-fA-F]+;/,
             /\\[abtnr]/,
             "\\|")),
-        "|"))),
+        "|")),
   // Chez accepts any delimited sequence that is not a number as an
   // identifier. A longer spelling such as 0abc wins as one identifier
   // instead of being split after the leading number. In Chez mode, a
@@ -297,26 +333,76 @@ const symbol = {
   // complete token is not a number, as in 32/#. `|` is not a Chez
   // delimiter, so 32/#|foo| is one identifier.
   chez:
-    token(choice(
+    choice(
       seq(/[0-9]/, repeat(chezNumberSymbolMember)),
       seq(/[+\-.]/, repeat1(chezNumberSymbolMember)),
       seq(chezSymbolStartPart, repeat(chezSymbolPart)),
       "+",
       "-",
       "{",
-      "}")),
+      "}"),
 };
+
+const chickenBarSymbol = seq(
+  "|",
+  repeat(choice(
+    /[^|\\]+/,
+    /\\[xX][0-9a-fA-F]+;/,
+    /\\[abtnr|]/,
+  )),
+  "|",
+);
+const chickenInitial = /[A-Za-z!$%&*\/<=>?^_~]/;
+const chickenInitialWithColon = /[A-Za-z!$%&*\/:<=>?^_~]/;
+const chickenSubsequent = /[A-Za-z!$%&*\/:<=>?^_~0-9+.@-]/;
+const chickenNonColonSubsequent = /[A-Za-z!$%&*\/<=>?^_~0-9+.@-]/;
+const chickenSymbolTail = repeat(chickenSubsequent);
+// Colon may appear inside an ordinary symbol, but not at the end. `foo:` is
+// then only a suffix keyword, which is longer, so the lexer needs no prec.
+const chickenOrdinaryTail = repeat(choice(
+  chickenNonColonSubsequent,
+  seq(repeat1(":"), chickenNonColonSubsequent),
+));
+const chickenBareSymbol = (initial, tail = chickenSymbolTail) => choice(
+  seq(initial, tail),
+  seq(
+    /[+-]/,
+    optional(seq(
+      choice(initial, /[+\-@]/),
+      tail))),
+  seq(
+    /[+-]/,
+    ".",
+    choice(initial, /[+\-@]/, "."),
+    tail),
+  seq(
+    ".",
+    choice(initial, /[+\-@]/, "."),
+    tail),
+);
+// Ordinary symbols omit a leading colon so :NAME can be a prefix keyword.
+// A lone : remains a symbol. Keyword names after #: keep colon in both
+// positions.
+symbol.chicken = choice(
+  chickenBareSymbol(chickenInitial, chickenOrdinaryTail),
+  chickenBarSymbol,
+  ":",
+);
+symbol.chickenKeywordName = choice(
+  chickenBareSymbol(chickenInitialWithColon),
+  chickenBarSymbol,
+);
 // Published ordinary Guile symbols inherit the R5RS identifier grammar.
 // Leave colon out of the initial class so the static option union can expose
 // :NAME as a prefix keyword; colon remains valid after the first character.
-symbol.guile = token(seq(
+symbol.guile = seq(
   choice(
     seq(
       /[A-Za-z!$%&*\/<=>?^_~]/,
       repeat(/[A-Za-z!$%&*\/:<=>?^_~0-9+.@-]/)),
     "+",
     "-",
-    "...")));
+    "..."));
 // Guile's #{...}# form stops at the first }#. Do not wrap this in token():
 // repeat(anyCharacter) would be greedy and take the last }#, and wrap(prec)
 // inside token() does not compete with anyCharacter in the same token.
@@ -329,7 +415,7 @@ symbol.guileExtended = wrap => seq(
 // Optional r7rs-symbols: |...| with string-style escapes. Do not reuse
 // symbol.r7rs; that identifier grammar treats : as initial and would
 // steal prefix keywords.
-symbol.guileVertical = token(seq(
+symbol.guileVertical = seq(
   "|",
   repeat(choice(
     /[^|\\]+/,
@@ -339,7 +425,7 @@ symbol.guileVertical = token(seq(
     /\\[|\\("0abfnrtv]/,
   )),
   "|",
-));
+);
 
 const keyword = {
   // Marker then name, no atmosphere. The owning grammar supplies the name
@@ -347,11 +433,19 @@ const keyword = {
   hashColon: name => seq("#:", field("name", name)),
   colon: name => seq(":", field("name", name)),
   // Published postfix keywords are R5RS identifiers ending in colon.
-  guilePostfix: token(seq(
+  guilePostfix: seq(
     /[A-Za-z!$%&*\/<=>?^_~]/,
     repeat(/[A-Za-z!$%&*\/:<=>?^_~0-9+.@-]/),
     ":",
-  )),
+  ),
+  chickenSuffix: seq(
+    chickenBareSymbol(chickenInitialWithColon),
+    ":",
+  ),
+  chickenPrefix: seq(
+    ":",
+    choice(chickenBareSymbol(chickenInitialWithColon), chickenBarSymbol),
+  ),
 };
 
 // number {{{

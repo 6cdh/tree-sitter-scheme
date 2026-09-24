@@ -1,8 +1,20 @@
 # Dialect grammar design
 
-This document defines how the default parser, dialect parsers, and shared
-reader fragments fit together. It also defines tree-shape, generation, and
-testing rules for changes in those areas.
+This document defines the design contract for the default parser, dialect
+parsers, shared reader fragments, and their syntax trees. For related guidance,
+see the [lexer and parser model](mental_model.md), the
+[dialect workflow](dialect-workflow.md), and the
+[setup instructions](../CONTRIBUTING.md).
+
+Design principles:
+
+- Each grammar makes its accepted reader syntax visible.
+- Shared fragments reuse reader concepts without hiding a complete grammar.
+- Trees serve editor tools, with explicit limits on validation and reader state.
+- Prefer an SRFI name for a reusable fragment variant when the syntax comes from an SRFI.
+- Prefer a named group for a reusable fragment.
+
+## Syntax authority and parser coverage
 
 Reader syntax belongs in the relevant standard or implementation notes:
 
@@ -13,116 +25,112 @@ Reader syntax belongs in the relevant standard or implementation notes:
 - [R6RS](http://www.r6rs.org/)
 - [R7RS-small](https://small.r7rs.org/)
 
-Syntax reference documents describe formal syntax first. They must not treat
-observed implementation behavior as normative when the published syntax is
-clear. Keep an `Implementation Behavior` section only for token boundaries or
-other formal-syntax gaps that the published sources leave unclear. Syntax
-documents describe reader syntax only; grammar and node-shape decisions stay
-with the owning grammar, its queries, and its tests.
+Syntax references describe published reader rules, inherited syntax, defaults,
+optional modes, and gaps. Published prose and formal productions are equally
+authoritative. Observed interpreter behavior must not override clear published
+syntax or silently resolve ambiguous prose.
 
-## Repository model
+A syntax reference describes the dialect independently of this parser. The
+owning `grammar.js`, queries, and tests describe the parser's syntax selection,
+tree shape, conflict resolutions, and deliberate limits.
 
-The root `grammar.js` defines the default `scheme` parser. It accepts the
-union of R5RS, R6RS, and R7RS-small reader syntax. When two standards assign
-different token boundaries to the same text, the default parser uses the R6RS
-reading.
+### Dialect syntax document structure
+
+Organize `docs/<dialect>-scheme-syntax.md` in this order:
+
+1. **Scope and sources.** Target release, inherited standard, default reader
+   configuration, precise references, and notation. Identify productions as
+   quoted, adapted, or reconstructed from published prose.
+2. **Default reader syntax.** Group rules by reader concept. Include token
+   boundaries and documented restrictions; reference unchanged inherited rules
+   instead of copying them. Preserve any ambiguity in the published rules.
+3. **Optional reader syntax.** State each extension's activation mechanism,
+   default setting, changed productions, and interactions with other modes.
+4. **Documentation gaps and implementation evidence.** Record questions left
+   unclear by published sources and any evidence used to investigate them.
+   An existing `Implementation Behavior` section serves this purpose.
+5. **Known deviations from published syntax.** When an interpreter contradicts
+   a clear published rule, record the discrepancy separately. Omit this section
+   when there are no known deviations.
+
+For each implementation-evidence entry, record the question, relevant published
+rule or gap, interpreter version or source revision, minimal example, invocation
+or source location, observation, and conclusion. Distinguish observed behavior
+from inference, and leave unresolved questions explicit. Evidence about a gap
+may support a working interpretation; it does not become a published rule.
+Known deviations likewise do not change the documented syntax.
+
+Reader defaults, flags, and documented extensions belong in this reference.
+Tree-sitter precedence, node names, scanners, and permissive acceptance belong
+with the parser. Keep usage surveys and parser coverage tables in the tracking
+issue or review record, as described in [dialect-workflow.md](dialect-workflow.md).
+
+### Default and dialect parsers
+
+The root `grammar.js` defines the default `scheme` parser. It accepts the union
+of R5RS, R6RS, and R7RS-small reader syntax. When standards assign different
+token boundaries to the same text, it uses the R6RS reading. Keep the default
+parser compatible with the existing bindings.
 
 Each directory under `dialects/` defines a separate Tree-sitter language.
-Dialect grammars select syntax explicitly in their own `grammar.js`; there is
-no separate feature configuration. A dialect parser is not interchangeable
-with the default parser and owns its queries under `dialects/<name>/queries/`.
+Each dialect's `grammar.js` selects syntax explicitly; there is no separate
+feature configuration. A dialect parser is not interchangeable with the default parser
+and owns its queries under `dialects/<name>/queries/`.
 
-Shared reader definitions live under `grammar/`:
+### Optional modes and reader state
+
+Default reader syntax is the baseline for coverage decisions. Optional syntax
+requires an explicit selection and interpretation in the owning grammar.
+Existing dialects may accept a documented union of modes. A union does not
+imply that the interpreter accepts all those modes simultaneously.
+
+When modes assign different token boundaries or node meanings to the same
+text, define which interpretation the parser uses and test that decision.
+Accepting both spellings alone does not resolve the conflict.
+
+A static grammar can represent a mode or a permissive union; it cannot execute
+runtime reader callbacks. Recognizing a directive does not by itself implement
+its effect on later input. Use an external scanner only when serialized scanner
+state can model the required incremental behavior. State known limits in the
+owning grammar's comments and tests.
+
+### Editor permissiveness
+
+These parsers produce useful trees while source is being edited. They are not
+complete validators of reader syntax or values. Keep deliberate departures
+from published rules explicit in the owning grammar and tests.
+
+For example, dot is list punctuation rather than a datum:
+
+```javascript
+syntax.list.round(choice($._token, $.dot))
+```
+
+This representation intentionally accepts some invalid dotted lists, such as
+`(.)`. The R5RS parser also accepts `123abc` as a number followed by a symbol
+instead of enforcing implicit token termination. A validator can enforce
+stricter rules. These exceptions do not make arbitrary over-acceptance part of
+the contract.
+
+## Grammar ownership and shape
 
 ```text
 grammar.js                   # Default parser
 grammar/                     # Shared reader fragments
-dialects/<name>/grammar.js   # Dialect parser
+queries/                     # Default parser queries
 src/                         # Generated default parser
+dialects/<name>/grammar.js   # Dialect parser
+dialects/<name>/queries/     # Dialect queries
 ```
 
-Keep these compatibility rules:
-
-- Do not copy a shared lexical definition into several dialect grammars.
-- Keep structural rules in each owning `grammar.js`; shared modules provide
-  fragments and small factories, not a hidden complete grammar.
-- Keep the default parser compatible with the existing bindings.
-- Do not commit generated `dialects/*/src/` directories.
-
-## Shared reader fragments
-
-Import shared definitions from `grammar/index.js` as `core` and `syntax`.
-Their source of truth is `grammar/core.js`, `grammar/literals.js`, and
-`grammar/reader.js`; do not duplicate a symbol catalog in this document.
-
-Group fragments by reader concept, such as booleans, symbols, comments, and
-vectors. Add another shared file only when an existing file becomes difficult
-to navigate.
-
-Named variants sit in the group object's body. Attach a variant after the
-object only when it reads a sibling key.
-
-Keep handwritten Tree-sitter expressions when moving syntax into `grammar/`.
-Do not replace a number grammar with a generic factory merely to reduce its
-line count. Use a factory when the syntax must receive a grammar node or a
-selected dialect fragment.
-
-### Token boundaries
-
-A reusable lexical fragment owns `token(...)` when it can be lexed as one
-token. A dialect that selects one such fragment uses it directly:
-
-```javascript
-boolean: _ => syntax.boolean.r5rs,
-```
-
-When a dialect combines fragments into one lexical choice, wrap the complete
-composition in `token(...)`:
-
-```javascript
-boolean: _ => token(choice(
-  syntax.boolean.r7rs,
-  syntax.boolean.r6rs,
-  syntax.boolean.r5rs,
-)),
-```
-
-Do not leave a `choice(...)` of tokenized fragments unwrapped. That produces
-separate lexer alternatives and has caused larger generated parsers and token
-selection regressions.
-
-Raw expressions such as `core.anyCharacter` remain unwrapped when callers
-must compose them inside a larger token. A factory that contains grammar
-nodes, such as a list or datum comment, cannot be a token.
-
-### Precedence
-
-Shared fragments do not set `prec(...)`. Precedence depends on every rule in a
-parser, so the owning `grammar.js` sets it:
-
-```javascript
-token(prec(1, syntax.keyword.guilePostfix))
-syntax.comment.block($.block_comment, value => prec(100, value))
-```
-
-### Factories
-
-A factory receives only the grammar nodes it uses, never the complete `$`
-namespace:
-
-```javascript
-sexp_comment: $ => syntax.comment.datum($._intertoken, $._datum),
-keyword: $ => syntax.keyword.hashColon(alias($._keyword_symbol, $.symbol)),
-```
-
-Pass a recursive rule into its factory instead of hard-coding the public rule
-name. Pass dialect-dependent syntax explicitly; for example, keyword syntax
-should use the same symbol rule that the dialect exposes for ordinary symbols.
-
-## Dialect grammar shape
+Keep structural rules in the owning `grammar.js`. Shared modules provide
+fragments and small factories. Do not copy shared lexical definitions into
+several dialect grammars or hide the dialect's choices in a complete shared
+grammar.
 
 Keep `program` first because Tree-sitter uses the first rule as the start rule.
-A dialect grammar should make its main reader choices visible near the top:
+Make the main reader choices visible near the top. This sketch shows the shape;
+use maintained dialect grammars for complete examples:
 
 ```javascript
 const { core, syntax } = require("../../grammar/index");
@@ -140,85 +148,168 @@ module.exports = grammar({
 });
 ```
 
-Use the maintained dialect grammars as examples. Do not copy a complete
-grammar into this document.
-
 The root grammar must import `./grammar/index` explicitly. In Node resolution,
 `require("./grammar")` finds the root `grammar.js` before the `grammar/`
 directory.
 
-## Syntax-tree shape
+### Rule formatting
 
-Use the same node name for the same reader concept across dialects. Different
-boolean spellings still produce `boolean`; implementation-specific constructs
-may use implementation-specific node names. Keep queries for those nodes with
-their dialect.
+- Keep a short rule on the same line as its node name.
+- For longer rules, break after `=>`.
+- Keep a rule on one line or break after each opening `(`.
+- Keep closing `)` on the preceding line.
+- Short nested rules stay on one line. Multi-line nested rules follow
+  these same bullets.
 
-The natural contents of a collection remain unnamed children. For example,
-the symbols in `(a b c)` are direct children of `list`; an `elements` field
-would repeat information already supplied by the node type and child order.
+## Shared fragment contracts
 
-Use a named field when a child has a distinct role, such as a name, prefix,
-rank, type, or target. A field must point to a syntax-tree node. If the field
-must cover a lexical token, give that token a named rule or alias; a
-`field(...)` nested inside `token(...)` is not exposed in the generated tree.
+Import `core` and `syntax` from `grammar/index.js`. Their definitions live in
+`grammar/core.js`, `grammar/literals.js`, and `grammar/reader.js`; those files
+own the fragment catalog.
 
-Dot is list punctuation rather than a datum:
-
-```javascript
-syntax.list.round(choice($._token, $.dot))
-```
-
-This representation intentionally accepts some invalid dotted lists, such as
-`(.)`. The R5RS parser also accepts `123abc` as a number followed by a symbol
-instead of enforcing implicit token termination. These choices support useful
-trees while source is being edited; a validator can enforce stricter rules.
-
-Some readers change behavior through directives or callbacks. A static grammar
-can represent one mode or a documented permissive union, but it cannot execute
-reader state changes. Use an external scanner only when serialized scanner
-state can model the required incremental behavior. State known limits in the
-owning grammar's comments and tests.
-
-## Generated parsers
-
-Only the default parser keeps generated files in `src/`; the language bindings
-need them. Tree-sitter CLI 0.24 writes generated files to `src/` under the
-current directory, so generate a dialect from its own directory:
-
-```sh
-cd dialects/guile
-npx tree-sitter generate
-npx tree-sitter test
-```
-
-The equivalent root commands are `npm run generate:guile` and
-`npm run test:guile`. Matching commands exist for `r5rs`, `r6rs`, `r7rs`, and
-`chez`. `npm run parse:<dialect> -- path/to/file.scm` generates, builds, and
-parses with that dialect.
-
-Never generate a dialect by passing its `grammar.js` to the CLI from the
-repository root; doing so overwrites the default parser's `src/` files.
-
-## Tests
-
-Every maintained dialect must generate and pass its corpus tests in CI.
-Include positive dialect syntax, syntax shared with other parsers, and negative
-cases for syntax the dialect rejects. Generation itself is a required check
-because it exposes lexer and parser conflicts.
+Group fragments by reader concept, such as booleans, symbols, comments, and
+vectors. Put a reusable fragment in such a group rather than exporting a bare
+factory. Named variants sit in the group object's body. Attach a variant after
+the object only when it reads a sibling key. Add another shared file only when
+an existing file becomes difficult to navigate.
 
 Every exported fragment must be selected by at least one maintained parser,
-either directly or composed inside another selected fragment.
-Share corpus cases where practical instead of copying identical cases between
-dialects.
+either directly or through another selected fragment.
 
-Scripts generate corpus cases whose bytes are easy to damage in an editor:
+### Naming and selection
+
+Prefer an SRFI name for a fragment variant when the spelling is a SRFI, as
+in `byteString.srfi207` or `constructor.srfi10`. The tree node still uses
+the reader concept, such as `byte_string` or `srfi10_constructor`. Otherwise name
+a fragment after the spelling it defines, not the parser that selects it.
+Select an existing fragment when a dialect inherits that spelling
+unchanged. Add a dialect-named fragment only when the accepted spelling
+differs. Do not export an identity alias. Independent sources may keep
+parallel fragments for the same spelling; a sibling composition is a new
+fragment.
+
+### Lexical tokens
+
+A reusable fragment exposes its top-level composition. The owning grammar
+decides whether a complete number, symbol, whitespace run, comment, or other
+fragment must be one lexer token:
+
+```javascript
+number: _ => token(syntax.number.r7rs),
+symbol: _ => token(syntax.symbol.chicken),
+```
+
+Do not wrap a complete exported reader spelling in `token(...)` merely because
+one current grammar wants one leaf. This keeps fragments composable and avoids
+nested token boundaries when another grammar builds a larger lexical choice.
+
+A fragment may still contain `token(...)` when the token is a context-local
+part of the reader spelling. Keep the shared delimiter visible to the parser,
+then tokenize only the body whose alternatives must compete in that context:
+
+```javascript
+r7rs: seq("#", token(choice(
+  /[tTfF]/,
+  /[tT][rR][uU][eE]/,
+  /[fF][aA][lL][sS][eE]/,
+))),
+```
+
+CHICKEN boolean names and number-vector tags both follow `"#"`. After the
+parser shifts that delimiter, the tokenized `f32` tag beats the shorter `f`
+boolean name. A contextual fragment such as `numberVector.chickenTag` may
+itself be a token because its contract is the body after that shared prefix,
+not a complete reader spelling. Internal whitespace or opaque bodies may also
+be tokenized when their boundary is intrinsic to the surrounding factory and
+cannot compete as a standalone grammar node.
+
+When a complete spelling must be one token, wrap the raw fragment at its
+owning grammar rule. When every selected fragment is raw at that level,
+wrapping the complete call-site `choice(...)` can also shrink the lexer and
+stabilize token selection. Do not wrap across a fragment's contextual token.
+The grammar owns that decision because only the grammar knows all competing
+nodes.
+
+Raw expressions such as `core.anyCharacter` stay unwrapped so callers can
+compose them. A factory containing grammar nodes, such as a list or datum
+comment, cannot be a token.
+
+### Precedence and factories
+
+The owning grammar sets precedence because precedence depends on its competing
+rules. Shared fragments do not choose `prec(...)` values. They may receive a
+precedence wrapper from the caller:
+
+```javascript
+token(prec(1, syntax.keyword.guilePostfix))
+syntax.comment.block($.block_comment, value => prec(100, value))
+```
+
+Pass a factory only the grammar nodes and dialect fragments it uses,
+never the complete `$` namespace:
+
+```javascript
+sexp_comment: $ => syntax.comment.datum($._intertoken, $._datum),
+keyword: $ => syntax.keyword.hashColon(alias($._keyword_symbol, $.symbol)),
+```
+
+Pass recursive rules into factories instead of hard-coding public rule names.
+Pass dialect-dependent syntax explicitly. For example, keyword names should
+use the dialect's selected symbol syntax.
+
+Preserve handwritten Tree-sitter expressions when moving them into shared
+modules. Use a factory when syntax needs a grammar node or a selected fragment;
+do not replace a number grammar with a generic factory merely to reduce lines.
+
+## Syntax-tree contract
+
+Use the same node name for the same reader concept across dialects. Different
+boolean spellings still produce `boolean`. Implementation-specific constructs
+may use implementation-specific names, with queries owned by the dialect.
+
+Collection contents are direct children without fields for their ordinary
+positions. In `(a b c)`, the three named `symbol` nodes are direct children of
+`list`. An `elements` field would repeat information supplied by the node type
+and child order. A child without a field is not necessarily an unnamed node.
+
+Use a field when a child has a distinct role, such as a name, prefix, rank,
+type, or target. A field must point to a syntax-tree node. To expose a lexical
+token through a field, give the token a named rule or alias. A `field(...)`
+nested inside `token(...)` is not exposed in the generated tree.
+
+Keep grammar rules, expected trees, and queries aligned when changing node
+names or fields. Sharing a node name does not make complete dialect trees or
+queries interchangeable.
+
+## Generated files and verification
+
+Only the default parser tracks generated files in `src/`; its bindings need
+those files. Do not commit generated files under `dialects/*/src/`. A dialect
+may track a handwritten external scanner there while ignoring generated files.
+
+Generate each dialect from its own directory, using the repository's CLI.
+Never pass a dialect `grammar.js` to generation from the repository root:
+that overwrites default `src/`. Root `npm run generate:<dialect>`,
+`test:<dialect>`, and `parse:<dialect>` commands handle the working directory;
+see [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+Every maintained dialect must generate and pass its corpus tests in CI.
+Generation is itself a required check because it exposes lexer and parser
+conflicts. Changes to shared fragments require generation and tests for every
+parser that selects the affected fragments.
+
+Corpus tests cover positive dialect syntax, shared syntax, rejected syntax,
+token boundaries, and deliberate permissiveness. Check expected node names and
+fields as well as acceptance, and validate the affected queries. Share corpus
+cases where practical instead of copying identical cases between dialects.
+
+Scripts own corpus cases whose bytes are easy to damage in an editor:
 
 - R6RS line endings: `scripts/write-r6rs-line-ending-corpus.js`
 - R7RS line endings: `scripts/write-r7rs-line-ending-corpus.js`
 - Chez line endings: `scripts/write-chez-line-ending-corpus.js`
 - Guile whitespace: `scripts/write-guile-whitespace-corpus.js`
 
-Do not copy those generated cases into handwritten corpus files. After
-changing the default grammar, regenerate its checked-in `src/` files and
-verify that the generated diff is intentional.
+Change those scripts rather than hand-editing or copying their generated cases.
+After changing the default grammar or its selected fragments, regenerate the
+checked-in `src/` files and verify that the generated diff is intentional.

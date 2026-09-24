@@ -46,6 +46,25 @@ jobs:
           node ../../scripts/write-guile-whitespace-corpus.js
           tree-sitter generate
           tree-sitter test
+      - name: Test CHICKEN dialect
+        working-directory: dialects/chicken
+        run: |
+          node ../../scripts/write-chicken-scanner-corpus.js
+          tree-sitter generate
+          tree-sitter test
+
+  chicken-incremental:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install npm dependencies
+        run: npm ci
+      - name: Test CHICKEN incremental parsing
+        run: npm run test:chicken:incremental
 
   chez-scheme:
     runs-on: ubuntu-latest

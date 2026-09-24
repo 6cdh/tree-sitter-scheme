@@ -1,0 +1,27 @@
+{
+  "grammars": [
+    {
+      "name": "scheme",
+      "camelcase": "Scheme",
+      "scope": "source.scheme",
+      "path": ".",
+      "file-types": [
+        "scm",
+        "ss"
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "0.24.7-1",
+    "license": "MIT",
+    "description": "Tree-sitter parser for CHICKEN Scheme",
+    "authors": [
+      {
+        "name": "6cdh"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/6cdh/tree-sitter-scheme"
+    }
+  }
+}

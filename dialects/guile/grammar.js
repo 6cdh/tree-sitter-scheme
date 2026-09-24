@@ -119,7 +119,7 @@ module.exports = grammar({
       ")",
     ),
     bit_vector: _ => syntax.vector.guileBitvector,
-    byte_string: $ => syntax.byteString(
+    byte_string: $ => syntax.byteString.srfi207(
       alias(syntax.stringEscape.srfi207, $.escape_sequence),
     ),
     special_object: _ => syntax.specialObject.guile,

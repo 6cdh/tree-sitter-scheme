@@ -1,4 +1,4 @@
-const {anyCharacter} = require("./core");
+const { anyCharacter } = require("./core");
 
 const comment = {
   line: {
@@ -6,29 +6,33 @@ const comment = {
     // break stays visible as whitespace. Stop at CR and LF so they match
     // core.whitespace.r5rs. Do not treat NEL, U+2028, or U+2029 as
     // R5RS line breaks.
-    r5rs: token(seq(";", /[^\n\r]*/)),
+    r5rs: seq(";", /[^\n\r]*/),
     // R6RS 4.2.1: a line comment runs up to a line ending or paragraph
     // separator. This contains the R5RS form and adds Unicode line endings.
     // Leave those characters out so whitespace can consume them.
-    r6rs: token(seq(";", /[^\n\r\u{85}\u{2028}\u{2029}]*/)),
+    r6rs: seq(";", /[^\n\r\u{85}\u{2028}\u{2029}]*/),
     // Chez's reader stops a line comment at NEL and LS, but not at PS.
     // Keep this separate from the R6RS fragment, whose line endings include
     // paragraph separator.
-    chez: token(seq(";", /[^\n\r\u{85}\u{2028}]*/)),
+    chez: seq(";", /[^\n\r\u{85}\u{2028}]*/),
     // R7RS 7.1.1 names only CR and LF as line endings. Other Unicode line
     // separators remain part of the comment.
-    r7rs: token(seq(";", /[^\n\r]*/)),
+    r7rs: seq(";", /[^\n\r]*/),
     // Guile skip-eol-comment stops only at newline. CR, NEL, and Unicode
     // separators stay in the comment.
-    guile: token(seq(";", /[^\n]*/)),
+    guile: seq(";", /[^\n]*/),
   },
   datum: (intertoken, datum) => seq("#;", repeat(intertoken), datum),
   // Unix shebang. Require a space or slash after #! so this does not eat
   // #!r6rs, #!chezscheme, #!eof, or the other hash-bang tokens.
-  shebang: token(choice(
-    seq("#!", / +/, /[^\n\r]*/),
-    seq("#!/", /[^\n\r]*/),
-  )),
+  shebang: seq("#!", token(choice(
+    seq(/ +/, /[^\n\r]*/),
+    seq("/", /[^\n\r]*/),
+  ))),
+  chickenShebang: seq("#!", token(choice(
+    seq(/[ \t\/]/, /[^\n\r]*/),
+    /\r\n|[\r\n]/,
+  ))),
   // Guile treats every unknown #! name as a script comment ending at the
   // first !#. Keep this structural so the grammar's exact directive tokens
   // win at their longer opening spellings and the closing priority stops at
@@ -50,26 +54,33 @@ const comment = {
 };
 
 const directive = {
-  r6rs: token("#!r6rs"),
-  r7rs: token(choice("#!fold-case", "#!no-fold-case")),
+  r6rs: seq("#!", "r6rs"),
+  r7rs: seq("#!", token(choice("fold-case", "no-fold-case"))),
 };
-directive.guile = token(choice(
-  directive.r6rs,
-  directive.r7rs,
-  "#!curly-infix",
-  "#!curly-infix-and-bracket-lists",
-));
-directive.chez = token(choice(
-  "#!chezscheme",
-  directive.r6rs,
-  directive.r7rs,
-));
+directive.guile = seq("#!", token(choice(
+  "r6rs",
+  "fold-case",
+  "no-fold-case",
+  "curly-infix",
+  "curly-infix-and-bracket-lists",
+)));
+directive.chez = seq("#!", token(choice(
+  "chezscheme",
+  "r6rs",
+  "fold-case",
+  "no-fold-case",
+)));
 
 const specialObject = {
   // Guile dispatches only on lowercase n. The rest is case-insensitive when
   // that reader option is enabled, which the static dialect union accepts.
-  guile: token(seq("#n", /[iI][lL]/)),
-  chez: token(choice("#!eof", "#!bwp", "#!base-rtd")),
+  guile: seq("#", token(seq("n", /[iI][lL]/))),
+  chez: seq("#!", token(choice("eof", "bwp", "base-rtd"))),
+  chicken: seq("#!", token(choice("eof", "bwp"))),
+};
+
+const dssslMarker = {
+  chicken: seq("#!", token(choice("optional", "rest", "key"))),
 };
 
 const label = {
@@ -184,8 +195,62 @@ const vector = {
     seq("#", field("mask", mask), "vs(", repeat(token), ")"),
   // Literal `#` then `*`, then zero or more bit characters. `#*` is the
   // empty bitvector. This is not a regex "zero or more hashes".
-  guileBitvector: token(seq("#*", /[01]*/)),
+  guileBitvector: seq("#", token(seq("*", /[01]*/))),
   guileArrayPrefix: guile_array_prefix(),
+};
+
+const numberVector = {
+  // The tag follows a shared `#`. Keeping only the tag as one token lets
+  // `f32` beat the shorter R7RS boolean name `f` before the parser sees `(`.
+  chickenTag: token(choice(
+    "u16", "u32", "u64",
+    "s8", "s16", "s32", "s64",
+    "f32", "f64", "c64", "c128",
+  )),
+};
+
+const foreignDeclare = {
+  // A run of `<` belongs to the body unless followed by `#`; then its last
+  // `<` starts the closer. Pairing `<` with any non-`#` would hide `<<#`.
+  chicken:
+    seq(
+      "#>",
+      token(
+        seq(
+          repeat(
+            choice(
+              /[^<]+/,
+              seq(repeat1("<"), /[^<#]/))),
+          repeat1("<"),
+          "#"))),
+};
+
+const locationExpr = {
+  // CHICKEN Extensions: `#$<datum>` with no atmosphere after `#$`.
+  chicken: datum =>
+    seq(
+      "#$",
+      field("target", datum)),
+};
+
+const condExpand = {
+  // CHICKEN Extensions: `#+<datum> <datum>` with no atmosphere after `#+`.
+  chicken: (intertoken, datum) =>
+    seq(
+      "#+",
+      field("feature", datum),
+      repeat(intertoken),
+      field("body", datum)),
+};
+
+const constructor = {
+  srfi10: (intertoken, name, token) =>
+    seq(
+      "#,(",
+      repeat(intertoken),
+      field("name", name),
+      repeat(token),
+      ")"),
 };
 
 const box = (intertoken, datum) =>
@@ -223,10 +288,16 @@ module.exports = {
   abbrev,
   box,
   comment,
+  condExpand,
+  constructor,
   directive,
+  dssslMarker,
+  foreignDeclare,
   gensym,
   label,
   list,
+  locationExpr,
+  numberVector,
   primitive,
   record,
   specialObject,

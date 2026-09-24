@@ -43,6 +43,9 @@ if (dialect === "r7rs") {
 if (dialect === "guile") {
   require("./write-guile-whitespace-corpus.js")();
 }
+if (dialect === "chicken") {
+  require("./write-chicken-scanner-corpus.js")();
+}
 
 // Always generate in the dialect directory. CLI 0.24 writes src/ in cwd;
 // generating from the repository root would overwrite the default parser.
@@ -75,4 +78,4 @@ if (action === "parse") {
   process.exit(0);
 }
 
-run(["test"]);
+run(["test", ...extraArgs]);

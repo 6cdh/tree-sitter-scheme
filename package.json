@@ -28,7 +28,12 @@
     "generate:guile": "node scripts/run-dialect.js guile generate",
     "build:guile": "node scripts/run-dialect.js guile build",
     "test:guile": "node scripts/run-dialect.js guile test",
-    "parse:guile": "node scripts/run-dialect.js guile parse"
+    "parse:guile": "node scripts/run-dialect.js guile parse",
+    "generate:chicken": "node scripts/run-dialect.js chicken generate",
+    "build:chicken": "node scripts/run-dialect.js chicken build",
+    "test:chicken": "node scripts/run-dialect.js chicken test",
+    "test:chicken:incremental": "node scripts/test-chicken-incremental.js",
+    "parse:chicken": "node scripts/run-dialect.js chicken parse"
   },
   "author": "6cdh",
   "license": "MIT",

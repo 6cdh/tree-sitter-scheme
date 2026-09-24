@@ -1,10 +1,14 @@
 node_modules/
 .generated/
 dialects/*/src/
+!dialects/chicken/src/
+dialects/chicken/src/*
+!dialects/chicken/src/scanner.c
 dialects/r6rs/test/corpus/generated-line-endings.scm
 dialects/chez/test/corpus/generated-line-endings.scm
 dialects/r7rs/test/corpus/generated-line-endings.scm
 dialects/guile/test/corpus/generated-whitespace.scm
+dialects/chicken/test/corpus/generated-scanner.scm
 dialects/*/*.so
 dialects/*/*.dll
 dialects/*/*.dylib

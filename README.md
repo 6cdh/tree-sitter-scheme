@@ -6,10 +6,10 @@ Scheme parser for tree-sitter.
 
 ## Recent News
 
-* Maintained R5RS, R6RS, R7RS-small, Chez Scheme, and Guile dialects live under
-  `dialects/`. The default `scheme` parser accepts all three standards. Reusable reader
-  fragments live under `grammar/`. How to add or change a dialect:
-  [docs/design.md](docs/design.md).
+* Maintained parsers for R5RS, R6RS, R7RS-small, Chez Scheme, Guile, and
+  CHICKEN Scheme live under `dialects/`. The default `scheme` parser accepts
+  all three standards. Reusable reader fragments live under `grammar/`. See
+  [docs/design.md](docs/design.md) to add or change a dialect.
 
 ## Status
 
@@ -48,6 +48,15 @@ strings, `#nil`, curly-infix source forms, string escapes, and `#! ... !#`
 script comments. Reader directives and dynamic hash prefixes are visible
 nodes, but the static parser does not execute their state changes or callbacks.
 
+The CHICKEN parser is `dialects/chicken/` (language name `scheme`). It accepts
+the CHICKEN Scheme 6.0.0 reader syntax documented in
+`docs/chicken-scheme-syntax.md`, including keywords, alternative list brackets,
+number vectors, here-documents, and hash dispatch forms. It accepts a fixed
+union of reader parameter modes but does not apply parameter changes or run
+application-defined reader callbacks. Its here-document scanner matches closing
+tags exactly. `#<<` produces `here_string`; `#<#` produces
+`interpolated_here_string`, with interpolations and `##` as children.
+
 The frozen R5RS parser is a separate Tree-sitter project in `dialects/r5rs/`.
 It is not a drop-in for the default parser or its queries. Build it in that
 directory:
@@ -72,6 +81,8 @@ Use the matching `generate:r6rs`, `test:r6rs`, `build:r6rs`, and
 `build:r7rs`, and `parse:r7rs` for the R7RS-small parser. Use `generate:chez`,
 `test:chez`, `build:chez`, and `parse:chez` for the Chez Scheme parser. Use
 `generate:guile`, `test:guile`, `build:guile`, and `parse:guile` for Guile.
+Use `generate:chicken`, `test:chicken`, `build:chicken`, and `parse:chicken`
+for CHICKEN Scheme.
 
 Do not pass a dialect `grammar.js` to `npx tree-sitter generate` from the
 repository root. CLI 0.24 would overwrite the default `src/` files.
@@ -85,7 +96,7 @@ and not an error.
 
 * [ ] Support for implementation
   * [x] Chez Scheme ([#1](https://github.com/6cdh/tree-sitter-scheme/issues/1))
-  * [ ] Chicken Scheme ([#3](https://github.com/6cdh/tree-sitter-scheme/issues/3))
+  * [x] Chicken Scheme ([#3](https://github.com/6cdh/tree-sitter-scheme/issues/3))
   * [x] Guile Scheme ([#7](https://github.com/6cdh/tree-sitter-scheme/issues/7))
   * [ ] Steel Scheme ([#17](https://github.com/6cdh/tree-sitter-scheme/issues/17))
 
@@ -112,6 +123,7 @@ Scheme
 * [The Scheme Programming Language](https://www.scheme.com/tspl4/)
 * [Chez Scheme User's Guide](https://cisco.github.io/ChezScheme/csug/)
 * [GNU Guile Reference Manual](https://www.gnu.org/software/guile/manual/)
+* [CHICKEN Scheme User's Manual](https://wiki.call-cc.org/man/6/The%20User%27s%20Manual)
 
 Tree-sitter
 

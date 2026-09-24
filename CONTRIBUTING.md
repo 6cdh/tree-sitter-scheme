@@ -1,24 +1,25 @@
 # Contributing
 
-Thank you to contribute `tree-sitter-scheme`.
+Thank you for contributing to `tree-sitter-scheme`.
 
 ## Workflow
 
-It's recommended to use [nix](https://nixos.org/) package manager, and run
+We recommend using the [Nix](https://nixos.org/) package manager:
 
 ```shell
 nix-shell
-npm install # if you haven't install node modules
+npm install # if you have not installed the Node dependencies
 ```
 
-Then you can use `tree-sitter` command:
+Then run the `tree-sitter` commands:
 
 ```shell
 tree-sitter generate
 tree-sitter test
 ```
 
-That pair refreshes the default parser in `src/` from root `grammar.js`.
+These commands regenerate and test the default parser from the root
+`grammar.js`. Generation writes to `src/`.
 
 Each maintained dialect is a separate project. Generate and test one in its
 directory so default `src/` is not overwritten:
@@ -37,15 +38,23 @@ To generate, build, and parse a file with one dialect, run:
 npm run parse:r5rs -- path/to/file.scm
 ```
 
-Replace `r5rs` with `r6rs`, `r7rs`, `chez`, or `guile` as needed.
+Replace `r5rs` with `r6rs`, `r7rs`, `chez`, `guile`, or `chicken` as needed.
 
-How to add or change a dialect or a shared fragment is in
-[docs/design.md](docs/design.md). Agents start from [AGENTS.md](AGENTS.md).
+After changing the CHICKEN scanner, also run `npm run test:chicken:incremental`.
+This test compares incremental parses with fresh parses using the runtime from
+the installed `tree-sitter` Node dependency. It covers older runtime behavior
+that the CLI does not exercise. It requires npm dependencies and a C compiler
+(`cc` by default; set `CC` to use another compiler).
 
+See [docs/design.md](docs/design.md) to add or change a dialect or shared
+fragment. Follow [docs/dialect-workflow.md](docs/dialect-workflow.md) for the
+research, coverage, implementation, and review checklist. Agents should start
+with [AGENTS.md](AGENTS.md).
 
-If you dont't use nix, you should follow the [official setup](https://tree-sitter.github.io/tree-sitter/creating-parsers) to configure the dev environment.
+If you do not use Nix, follow the [official setup](https://tree-sitter.github.io/tree-sitter/creating-parsers)
+to configure the development environment.
 
-Also remember to use project specific tree-sitter `./node_modules/.bin/tree-sitter`.
+Use the project's Tree-sitter CLI at `./node_modules/.bin/tree-sitter`.
 
 ## Todo
 
