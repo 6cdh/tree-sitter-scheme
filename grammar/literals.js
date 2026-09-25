@@ -71,15 +71,23 @@ const character = {
   // character u.
   steelScheme:
     seq("#\\", /u[0-9a-fA-F]+/),
-  // After #\ , Guile takes one delimiter character, or one token until a
-  // delimiter. Names, octal, and hex classify that token; they are not
-  // lexer alternatives. docs/guile-scheme-syntax.md Character.
+  // Published Guile character spellings from the Characters page. Names are
+  // the listed lowercase tables. docs/guile-scheme-syntax.md Character.
   guile:
     seq(
       "#\\",
       token(choice(
-        /[ \t\f\r\n()\[\]{}";]/,
-        /[^ \t\f\r\n()\[\]{}";]+/,
+        "backspace", "linefeed", "newline", "delete", "escape",
+        "alarm", "space", "null", "page", "return", "tab",
+        "vtab", "nul", "esc", "soh", "stx", "etx", "eot",
+        "enq", "ack", "bel", "bs", "ht", "lf", "vt", "ff",
+        "cr", "so", "si", "dle", "dc1", "dc2", "dc3", "dc4",
+        "nak", "syn", "etb", "can", "em", "sub", "fs", "gs",
+        "rs", "us", "sp", "del", "nl", "np",
+        /x[0-9a-fA-F]{1,8}/,
+        /[0-7]+/,
+        seq("\u{25CC}", anyCharacter),
+        anyCharacter,
       ))),
   // Chez rd-token-char. Lowercase x plus a hex digit starts hex; a later
   // non-hex non-delimiter sends the complete token to character-name lookup.

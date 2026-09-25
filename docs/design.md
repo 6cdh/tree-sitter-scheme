@@ -168,7 +168,6 @@ rules. Shared fragments do not choose `prec(...)` values. They may receive a
 precedence wrapper from the caller:
 
 ```javascript
-token(prec(1, syntax.keyword.guilePostfix))
 syntax.comment.block($.block_comment, value => prec(100, value))
 ```
 

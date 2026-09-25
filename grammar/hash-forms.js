@@ -1,7 +1,6 @@
 const specialObject = {
-  // Guile dispatches only on lowercase n. The rest is case-insensitive when
-  // that reader option is enabled, which the static dialect union accepts.
-  guile: seq("#", token(seq("n", /[iI][lL]/))),
+  // Published spelling from the Nil node.
+  guile: seq("#", "nil"),
   chez: seq("#!", token(choice("eof", "bwp", "base-rtd"))),
   chicken: seq("#!", token(choice("eof", "bwp"))),
 };

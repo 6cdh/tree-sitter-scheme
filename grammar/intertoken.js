@@ -18,9 +18,6 @@ const comment = {
     // R7RS 7.1.1 names only CR and LF as line endings. Other Unicode line
     // separators remain part of the comment.
     r7rs: seq(";", /[^\n\r]*/),
-    // Guile skip-eol-comment stops only at newline. CR, NEL, and Unicode
-    // separators stay in the comment.
-    guile: seq(";", /[^\n]*/),
   },
   datum: (intertoken, datum) => seq("#;", repeat(intertoken), datum),
   // Unix shebang. Require a space or slash after #! so this does not eat
@@ -33,10 +30,8 @@ const comment = {
     seq(/[ \t\/]/, /[^\n\r]*/),
     /\r\n|[\r\n]/,
   ))),
-  // Guile treats every unknown #! name as a script comment ending at the
-  // first !#. Keep this structural so the grammar's exact directive tokens
-  // win at their longer opening spellings and the closing priority stops at
-  // the first delimiter.
+  // Published Block Comments: `#!` … `!#`. Exact directive tokens in the
+  // owning grammar win at their longer openings; wrap stops at the first `!#`.
   guileScript: wrap => seq(
     "#!",
     repeat(anyCharacter),
@@ -58,7 +53,6 @@ const directive = {
   r7rs: seq("#!", token(choice("fold-case", "no-fold-case"))),
 };
 directive.guile = seq("#!", token(choice(
-  "r6rs",
   "fold-case",
   "no-fold-case",
   "curly-infix",

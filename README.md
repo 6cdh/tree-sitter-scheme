@@ -41,12 +41,13 @@ in `docs/chez-scheme-syntax.md`. It represents reader directives but accepts a
 fixed R6RS/Chez union; a static syntax tree cannot apply state changes from
 `#!r6rs`, `#!chezscheme`, or the case-folding directives.
 
-The Guile parser is `dialects/guile/` (language name `scheme`). Its Guile
-3.0.11 reader syntax is extracted in `docs/guile-scheme-syntax.md`. It includes
-Guile symbols and keywords, arrays and uniform vectors, bitvectors, byte
-strings, `#nil`, curly-infix source forms, string escapes, and `#! ... !#`
-script comments. Reader directives and dynamic hash prefixes are visible
-nodes, but the static parser does not execute their state changes or callbacks.
+The Guile parser is `dialects/guile/` (language name `scheme`). It
+accepts the default GNU Guile 3.0.11 reader syntax in
+`docs/guile-scheme-syntax.md`, including symbols and keywords, arrays
+and uniform vectors, bitvectors, `#nil`, default string escapes, and
+`#! ... !#` script comments. It recognizes reader directives but does
+not apply their state changes, run `read-hash-extend` callbacks, or
+match unpublished `read` quirks.
 
 The CHICKEN parser is `dialects/chicken/` (language name `scheme`). It accepts
 the CHICKEN Scheme 6.0.0 reader syntax documented in

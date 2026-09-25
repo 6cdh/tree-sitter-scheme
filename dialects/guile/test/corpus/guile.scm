@@ -40,7 +40,7 @@ Guile comments
 Guile directives
 ===
 
-#!fold-case #!no-fold-case #!r6rs
+#!fold-case #!no-fold-case #!curly-infix
 
 ---
 
@@ -124,13 +124,11 @@ Guile characters
 
 #\space #\newline #\x41 #\λ
 #\nul #\alarm #\backspace #\tab #\linefeed #\vtab #\page #\return #\esc #\delete #\soh
-#\( #\19 #\not-a-name #\SPACE #\null #\escape
+#\( #\10 #\null #\escape
 
 ---
 
 (program
-  (character)
-  (character)
   (character)
   (character)
   (character)
@@ -157,7 +155,7 @@ Guile string escapes
 
 "bar: \| nul: \0 paren: \( hex: \x7f unicode: \u0100 wide: \U010402"
 "continued\
-line standard: \n r6rs: \x3bb;"
+line standard: \n hex: \x3b"
 
 ---
 
@@ -196,8 +194,7 @@ plain lambda <= foo:bar abc123 + - ...
 Guile keywords
 ===
 
-#:type #:+ :prefix postfix:
-:foo:bar foo:bar: foo:: #:: :|bar baz| :#{two words}#
+#:type #:+ #:foo:bar #:: #:|
 
 ---
 
@@ -208,17 +205,25 @@ Guile keywords
     name: (symbol))
   (keyword
     name: (symbol))
-  (keyword)
-  (keyword
-    name: (symbol))
-  (keyword)
-  (keyword)
-  (keyword
-    name: (symbol))
   (keyword
     name: (symbol))
   (keyword
     name: (symbol)))
+
+===
+Default Guile colon forms are symbols
+===
+
+: :prefix postfix: :foo:bar foo:bar:
+
+---
+
+(program
+  (symbol)
+  (symbol)
+  (symbol)
+  (symbol)
+  (symbol))
 
 ===
 Guile keyword names are contiguous
@@ -308,15 +313,16 @@ Guile square lists
   (list))
 
 ===
-Guile extended symbols
+Guile extended symbols and ordinary bars
 ===
 
 #{foo bar}# #{}# #{}}# #{}}}# #{{}}# #{a\x20;b}#
-|foo bar| |\0\f\v\(\u0041\U000041\x41;|
+| |foo bar|
 
 ---
 
 (program
+  (symbol)
   (symbol)
   (symbol)
   (symbol)
@@ -330,12 +336,11 @@ Guile extended symbols
 Guile special objects and bit vectors
 ===
 
-#nil #nIL #*1010 #*
+#nil #*1010 #*
 
 ---
 
 (program
-  (special_object)
   (special_object)
   (bit_vector)
   (bit_vector))
@@ -344,11 +349,12 @@ Guile special objects and bit vectors
 Guile special-object dispatch is lowercase
 ===
 
-#NIL
+#NIL #nIL
 
 ---
 
 (program
+  (ERROR)
   (ERROR))
 
 ===
@@ -441,7 +447,7 @@ Guile shaped arrays
 Guile rank-one arrays
 ===
 
-#u8@2(1 2) #u8:2(1 2) #2u8@+1:2(1 2) #1(a b c d e f g h i j k l)
+#u8@2(1 2) #u8:2(1 2) #2u8@+1:2(1 2) #1(a b c d e f g h i j k l) #a("x")
 
 ---
 
@@ -471,91 +477,83 @@ Guile rank-one arrays
     (symbol)
     (symbol)
     (symbol)
-    (symbol)))
+    (symbol))
+  (array
+    prefix: (array_prefix)
+    (string)))
 
 ===
-Guile curly infix and neoteric source forms
+Default Guile braces stay inside symbols
 ===
 
-#!curly-infix {n <= 5} f(x) f[a] h{z}
-#!curly-infix-and-bracket-lists [a b]
+{n + 1} f(x) f[a] h{z}
+
+---
+
+(program
+  (symbol)
+  (symbol)
+  (symbol)
+  (symbol)
+  (list
+    (symbol))
+  (symbol)
+  (list
+    (symbol))
+  (symbol))
+
+===
+Reader directives do not change this static grammar
+===
+
+#!curly-infix {n + 1}
 
 ---
 
 (program
   (directive)
-  (curly_expression
-    (symbol)
-    (symbol)
-    (number))
   (symbol)
-  (list
-    (symbol))
   (symbol)
-  (list
-    (symbol))
-  (symbol)
-  (curly_expression
-    (symbol))
-  (directive)
-  (list
-    (symbol)
-    (symbol)))
+  (symbol))
 
 ===
-Guile script comments and directives
+Guile character boundary limitation
+===
+
+#\garbage #\x123456789
+
+---
+
+(program
+  (character)
+  (symbol)
+  (character)
+  (number))
+
+===
+Guile script comments
 ===
 
 #!unknown-name
 script body
 !#
-#!r6rs
-(define x 1)
 
 ---
 
 (program
-  (script_comment)
-  (directive)
-  (list
-    (symbol)
-    (symbol)
-    (number)))
+  (script_comment))
 
 ===
-Guile byte strings
+Default Guile rejects byte-string prefixes
 ===
 
-#u8"bytes: \a\b\t\n\r\"\|\x00041;\
-  continued"
+#u8"abc"
 
 ---
 
 (program
-  (byte_string
-    (escape_sequence)
-    (escape_sequence)
-    (escape_sequence)
-    (escape_sequence)
-    (escape_sequence)
-    (escape_sequence)
-    (escape_sequence)
-    (escape_sequence)
-    (escape_sequence)))
-
-===
-Guile byte strings reject non-SRFI-207 content
-===
-
-#u8"\0" #u8"é"
-
----
-
-(program
-  (byte_string
-    (ERROR))
-  (byte_string
-    (ERROR)))
+  (ERROR)
+  (string))
 
 ===
 Reader extensions need runtime registration
@@ -580,3 +578,15 @@ Unknown hash objects remain errors
 
 (program
   (ERROR))
+
+===
+Unpublished hash-bang names are not directives
+===
+
+#!r6rs
+
+---
+
+(program
+  (script_comment
+    (MISSING "!#")))

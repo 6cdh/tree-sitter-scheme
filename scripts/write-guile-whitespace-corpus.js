@@ -1,9 +1,10 @@
 "use strict";
 
-// Guile skips only space, tab, formfeed, CR, and LF. Vertical tab, NEL, and
-// Unicode spaces stay inside tokens. Those characters look like ordinary
-// spaces in an editor, so this script writes the corpus cases instead of
-// storing them in dialects/guile/test/corpus/guile.scm.
+// Scheme Read discards whitespace and does not list the characters. The
+// verified set is space, tab, formfeed, return, and newline. Vertical tab,
+// NEL, and Unicode spaces are not intertoken whitespace. Since they look like
+// ordinary spaces in an editor, this script writes the corpus cases
+// instead of storing them in dialects/guile/test/corpus/guile.scm.
 
 const fs = require("fs");
 const path = require("path");

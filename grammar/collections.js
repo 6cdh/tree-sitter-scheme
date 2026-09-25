@@ -6,11 +6,11 @@ const list = {
   curly: token => seq("{", repeat(token), "}"),
 };
 
-// Guile array prefix between `#` and `(`. The dialect keeps those delimiters
-// in the same token so `#f32(` beats boolean `#f` and `#u8(` beats byte-string
-// `#u8`. Length is enough; do not add prec(). `#(` is the vector rule, not an
-// empty prefix. `#vu8(` is the bytevector rule. Bare `#a(` and `#b(` are
-// unknown hash objects; ranked `#2a(` is an array.
+// Guile array prefix between `#` and `(`. Keep those delimiters in the
+// same token so `#f32(` beats boolean `#f`. Ranked and unranked arrays
+// share the published tag set,
+// including string/bit tags `a` and `b`. `#(` is the vector rule, not an
+// empty unranked prefix. `#vu8(` is the bytevector rule.
 function guile_array_prefix() {
   const rank = /[0-9]+/;
   const unsigned = /[0-9]+/;
@@ -19,8 +19,6 @@ function guile_array_prefix() {
     "s8", "s16", "s32", "s64",
     "f32", "f64", "c32", "c64",
   );
-  // Ranked arrays also allow string/bit tags a and b (`#2a(`). Bare `#a(`
-  // is not an array. Unranked forms use only uniformTag (`#u8(`).
   const vectag = choice(uniformTag, "a", "b");
   const dimension = choice(
     seq("@", optional(/[+-]/), unsigned, optional(seq(":", unsigned))),
@@ -28,7 +26,7 @@ function guile_array_prefix() {
   );
   return choice(
     seq(rank, optional(vectag), repeat(dimension)),
-    seq(uniformTag, repeat(dimension)),
+    seq(vectag, repeat(dimension)),
     repeat1(dimension),
   );
 }

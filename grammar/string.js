@@ -40,22 +40,14 @@ const stringEscape = {
       lineEnding.r7rs,
       repeat(intralineWhitespace.r7rs)),
   ))),
-  // The Guile parser accepts the union of default and option-controlled string
-  // escapes. Published R6RS-style scalar escapes contain at most eight digits.
+  // Guile's default escapes. Optional R6RS hex and hungry line modes are
+  // excluded; directives are recognized without changing later tokenization.
   guile: seq("\\", token(choice(
     /[|\\("0abfnrtv]/,
     /x[0-9a-fA-F]{2}/,
-    /x[0-9a-fA-F]{1,8};/,
     /u[0-9a-fA-F]{4}/,
     /U[0-9a-fA-F]{6}/,
-    seq("\n", repeat(/[\t\p{Zs}]/)),
-  ))),
-  // Published SRFI-207 byte-string escapes. Hungry continuation is newline
-  // plus later non-newline whitespace.
-  srfi207: seq("\\", token(choice(
-    /[abtnr"|\\]/,
-    /x0*[0-9a-fA-F]{1,2};/,
-    seq("\n", repeat(/[^\S\n]/)),
+    "\n",
   ))),
   chez: seq("\\", token(choice(
     r6rsStringEscapeBody,
@@ -74,15 +66,6 @@ const string = escape_sequence =>
     '"');
 
 const byteString = {
-  // `#u8"` then SRFI-207 bytes U+0020 through U+007E except `"` and `\`.
-  srfi207: escape_sequence =>
-    seq(
-      '#u8"',
-      repeat(
-        choice(
-          escape_sequence,
-          /[\x20-\x21\x23-\x5b\x5d-\x7e]+/)),
-      '"'),
   chicken: escape_sequence =>
     seq(
       '#u8"',

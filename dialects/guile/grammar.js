@@ -3,17 +3,17 @@ const {
   syntax,
 } = require("../../grammar/index");
 
-// GNU Guile 3.0.11 reader syntax extracted in
+// GNU Guile 3.0.11 default reader syntax from
 // docs/guile-scheme-syntax.md.
+//
+// The grammar selects default read options. It recognizes directives but does
+// not apply their later state changes or run read-hash-extend callbacks.
+// `#(` is the vector production, not a rank-1 array.
 
 module.exports = grammar({
   name: "scheme",
 
   extras: _ => [],
-
-  // Guile reader options and directives change reader behavior. This static
-  // language accepts the published option-controlled syntax as a union for
-  // the whole file. Runtime state and value checks stay in Guile.
 
   rules: {
     // Keep the start rule first. Tree-sitter uses the first rule as the start.
@@ -25,7 +25,7 @@ module.exports = grammar({
     ),
 
     _intertoken: $ => choice(
-      core.whitespace.guile,
+      token(core.whitespace.guile),
       $.comment,
       $.block_comment,
       $.sexp_comment,
@@ -36,7 +36,6 @@ module.exports = grammar({
     _datum: $ => choice(
       $.array,
       $.bit_vector,
-      $.byte_string,
       $.special_object,
       $.boolean,
       // Equal-length number and symbol tokens (123, 15##, +inf.0) are a
@@ -49,7 +48,6 @@ module.exports = grammar({
       $.keyword,
       $.symbol,
       $.list,
-      $.curly_expression,
       $.vector,
       $.byte_vector,
       $.quote,
@@ -62,7 +60,7 @@ module.exports = grammar({
       $.unsyntax_splicing,
     ),
 
-    comment: _ => syntax.comment.line.guile,
+    comment: _ => token(syntax.comment.line.r5rs),
     block_comment: $ => syntax.comment.block(
       $.block_comment,
       value => prec(100, value),
@@ -73,43 +71,38 @@ module.exports = grammar({
     ),
     directive: _ => syntax.directive.guile,
 
+    // `#` stays outside the boolean name so `#f32(` can be an array.
     boolean: _ => syntax.boolean.r7rs,
-    number: _ => syntax.number.guile,
+    number: _ => token(syntax.number.guile),
+    // A malformed long character name or overlong hex escape can recover as
+    // a shorter character followed by another datum; lexical lookahead would
+    // require a scanner, which this dialect does not use.
     character: _ => syntax.character.guile,
-
     string: $ => syntax.string($.escape_sequence),
     escape_sequence: _ => syntax.stringEscape.guile,
-    symbol: _ => choice(
-      syntax.symbol.guile,
-      syntax.symbol.guileVertical,
+    // `#{...}#` stays structural: a token would take the last `}#`.
+    symbol: $ => choice(
+      token(syntax.symbol.guile),
+      $._guile_extended_symbol,
+    ),
+    keyword: $ => syntax.keyword.hashColon(alias($._keyword_symbol, $.symbol)),
+    _keyword_symbol: $ => choice(
+      token(syntax.symbol.guile),
+      $._guile_extended_symbol,
+    ),
+    _guile_extended_symbol: _ =>
       syntax.symbol.guileExtended(value => prec(100, value)),
-    ),
-    // Prefix names use r5rs identifiers so a leading colon is allowed.
-    // Ordinary symbols omit colon from initial so :NAME can be a prefix
-    // keyword. Postfix is one leaf token.
-    keyword: $ => choice(
-      syntax.keyword.hashColon(alias($._keyword_symbol, $.symbol)),
-      syntax.keyword.colon(alias($._keyword_symbol, $.symbol)),
-      token(prec(1, syntax.keyword.guilePostfix)),
-    ),
-    _keyword_symbol: _ => choice(
-      syntax.symbol.r5rs,
-      syntax.symbol.guileVertical,
-      syntax.symbol.guileExtended(value => prec(100, value)),
-    ),
 
     list: $ => choice(
       syntax.list.round(choice($._token, $.dot)),
       syntax.list.square(choice($._token, $.dot)),
     ),
-    curly_expression: $ =>
-      syntax.list.curly(choice($._token, $.dot)),
     dot: _ => ".",
 
     vector: $ => syntax.vector.hash($._token),
     byte_vector: $ => syntax.vector.vu8($._token),
-    // Keep the complete opening syntax in one token so `#f32(` beats `#f`
-    // and `#u8(` beats `#u8"`. The prefix field covers that complete token.
+    // Keep the complete opening syntax in one token so `#f32(` beats `#f`.
+    // The prefix field covers that complete token.
     array: $ => seq(
       field("prefix", alias(
         token(seq("#", syntax.vector.guileArrayPrefix, "(")),
@@ -119,9 +112,6 @@ module.exports = grammar({
       ")",
     ),
     bit_vector: _ => syntax.vector.guileBitvector,
-    byte_string: $ => syntax.byteString.srfi207(
-      alias(syntax.stringEscape.srfi207, $.escape_sequence),
-    ),
     special_object: _ => syntax.specialObject.guile,
 
     quote: $ => syntax.abbrev.quote($._intertoken, $._datum),

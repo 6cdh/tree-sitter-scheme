@@ -48,8 +48,8 @@ that the CLI does not exercise. It requires npm dependencies and a C compiler
 
 See [docs/design.md](docs/design.md) to add or change a dialect or shared
 fragment. Follow [docs/dialect-workflow.md](docs/dialect-workflow.md) for the
-research, coverage, implementation, and review checklist. Agents should start
-with [AGENTS.md](AGENTS.md).
+documented baseline, coverage, implementation, and review checklist. Agents
+should start with [AGENTS.md](AGENTS.md).
 
 If you do not use Nix, follow the [official setup](https://tree-sitter.github.io/tree-sitter/creating-parsers)
 to configure the development environment.

@@ -10,8 +10,8 @@ const whitespace = {
   r6rs: repeat1(/[ \r\n\t\f\v\u{85}\p{Zs}\p{Zl}\p{Zp}]/),
   // R7RS 7.1.1 names space, tab, newline, and return.
   r7rs: repeat1(/[ \t\r\n]/),
-  // Guile ice-9/read.scm skips only these five. Vertical tab, NEL, and
-  // Unicode separators stay inside tokens.
+  // Scheme Read discards whitespace and does not list the characters.
+  // The verified set is space, tab, formfeed, return, and newline.
   guile: repeat1(/[ \t\f\r\n]/),
 };
 

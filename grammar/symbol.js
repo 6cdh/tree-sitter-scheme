@@ -154,17 +154,23 @@ symbol.chickenKeywordName = choice(
   chickenBareSymbol(chickenInitialWithColon),
   chickenBarSymbol,
 );
-// Published ordinary Guile symbols inherit the R5RS identifier grammar.
-// Leave colon out of the initial class so the static option union can expose
-// :NAME as a prefix keyword; colon remains valid after the first character.
-symbol.guile = seq(
-  choice(
-    seq(
-      /[A-Za-z!$%&*\/<=>?^_~]/,
-      repeat(/[A-Za-z!$%&*\/:<=>?^_~0-9+.@-]/)),
-    "+",
-    "-",
-    "..."));
+// Default Guile keeps R5RS identifiers and treats braces and vertical bar
+// as ordinary symbol characters when optional reader modes are off.
+symbol.guile = choice(
+  seq(
+    /[A-Za-z!$%&*\/:<=>?^_~{}|]/,
+    repeat(/[A-Za-z!$%&*\/:<=>?^_~{}|0-9+.@-]/)),
+  // A numeric-looking token with a brace or bar is a symbol, not a
+  // number followed by punctuation: `{n + 1}` ends with `1}`.
+  seq(
+    /[0-9]/,
+    repeat(/[A-Za-z!$%&*\/:<=>?^_~0-9+.@-]/),
+    /[{}|]/,
+    repeat(/[A-Za-z!$%&*\/:<=>?^_~{}|0-9+.@-]/)),
+  "+",
+  "-",
+  "...",
+);
 // Guile's #{...}# form stops at the first }#. Do not wrap this in token():
 // repeat(anyCharacter) would be greedy and take the last }#, and wrap(prec)
 // inside token() does not compete with anyCharacter in the same token.
@@ -174,32 +180,10 @@ symbol.guileExtended = wrap => seq(
   repeat(anyCharacter),
   wrap("}#"),
 );
-// Optional r7rs-symbols: |...| with string-style escapes. Do not reuse
-// symbol.r7rs; that identifier grammar treats : as initial and would
-// steal prefix keywords.
-symbol.guileVertical = seq(
-  "|",
-  repeat(choice(
-    /[^|\\]+/,
-    /\\x[0-9a-fA-F]{1,8};/,
-    /\\u[0-9a-fA-F]{4}/,
-    /\\U[0-9a-fA-F]{6}/,
-    /\\[|\\("0abfnrtv]/,
-  )),
-  "|",
-);
-
 const keyword = {
   // Marker then name, no atmosphere. The owning grammar supplies the name
   // node and any alias.
   hashColon: name => seq("#:", field("name", name)),
-  colon: name => seq(":", field("name", name)),
-  // Published postfix keywords are R5RS identifiers ending in colon.
-  guilePostfix: seq(
-    /[A-Za-z!$%&*\/<=>?^_~]/,
-    repeat(/[A-Za-z!$%&*\/:<=>?^_~0-9+.@-]/),
-    ":",
-  ),
   chickenSuffix: seq(
     chickenBareSymbol(chickenInitialWithColon),
     ":",

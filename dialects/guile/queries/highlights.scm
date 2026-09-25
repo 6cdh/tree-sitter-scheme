@@ -1,4 +1,4 @@
-["(" ")" "[" "]" "{" "}"] @punctuation.bracket
+["(" ")" "[" "]"] @punctuation.bracket
 (dot) @punctuation.delimiter
 
 (number) @number
@@ -12,7 +12,6 @@
 (keyword name: (symbol) @constant)
 
 (string) @string
-(byte_string) @string
 (escape_sequence) @escape
 
 [
