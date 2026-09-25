@@ -1,6 +1,6 @@
 # Tree-sitter mental model
 
-This working model explains how Tree-sitter grammars tokenize and parse input.
+This note explains how Tree-sitter grammars tokenize and parse input.
 See the official [Grammar DSL](https://tree-sitter.github.io/tree-sitter/creating-parsers/2-the-grammar-dsl.html)
 and [Writing the Grammar](https://tree-sitter.github.io/tree-sitter/creating-parsers/3-writing-the-grammar.html).
 
@@ -11,8 +11,8 @@ Tree-sitter is a context-aware lexer plus a GLR parser.
 1. The **lexer** emits one token.
 2. The **parser** builds nodes from tokens it already has.
 
-The lexer only considers tokens the parser will accept next. It still does
-not compare finished nodes. "This rule covers more source, so it should win"
+The lexer only considers tokens the parser will accept next. It does not
+compare finished nodes. "This rule covers more source, so it should win"
 is the wrong model.
 
 ## What is a token?
@@ -27,7 +27,8 @@ seq("(", ")")           // two tokens: "(" then ")"
 seq("#", /f32/, "(")    // three tokens: "#", f32, "("
 ```
 
-`token(...)` combines strings and regexes into **one** token. It only accepts terminals: `token($.foo)` is invalid.
+`token(...)` combines strings and regexes into **one** token. It accepts
+only terminals: `token($.foo)` is invalid.
 
 ```javascript
 token(seq("#", /f32/, "("))   // one token, text #f32(
@@ -35,8 +36,9 @@ token(choice("true", "false")) // one token, two spellings
 ```
 
 That merge moves work from the parser to the lexer. Parsing can get
-faster and the generated parser smaller. Combining the wrong expressions can hide children, consume another spelling,
-or select the wrong first token.
+faster, and the generated parser smaller. Combining the wrong expressions
+can hide children, consume another spelling, or select the wrong first
+token.
 
 `token.immediate(...)` is also one token. Extras (usually whitespace)
 cannot appear immediately before it.
@@ -53,7 +55,7 @@ one.
 number: _ => /[0-9]+/   // one token, named number
 ```
 
-These do **not** make a token. They join tokens, or they only change the
+These do **not** make a token. They join tokens, or they change only the
 tree:
 
 - `seq`, `choice`, `repeat`, `repeat1`, `optional`
@@ -76,8 +78,8 @@ for the rule that would cover more source.
 3. Otherwise a string literal beats a regex of the same length.
 4. Otherwise the token that appears earlier in the grammar wins.
 
-After that, the parser runs. Parser `prec` and `conflicts` rank shift/reduce
-among those tokens. They cannot take a token apart.
+After that, the parser runs. Parser `prec` and `conflicts` rank
+shift/reduce among those tokens. They cannot take a token apart.
 
 Suppose two rules are both valid at the start of a datum:
 
@@ -88,10 +90,11 @@ vector:  $ => seq("#", /f32|f64/, "("), // first token is "#"
 
 On input `#f32(`, the lexer sees `#f` (length 2) and `"#"` (length 1).
 Longest match wins, so it emits `#f`. The parser now has a complete
-`boolean`. The leftover is `32(`. Nothing can unsplit `#f` into `#` plus
-`f32`.
+`boolean`. The leftover is `32(`. Nothing can split `#f` back into `#`
+plus `f32`.
 
-Parser `prec` on `vector` does not change this. The lexer has already chosen a token before the parser ranks rules.
+Parser `prec` on `vector` does not change this. The lexer has already
+chosen a token before the parser ranks rules.
 
 ## A token is a leaf
 
@@ -119,6 +122,6 @@ does not help. For `#f` versus `#f32(`:
 - Or use an external scanner when sharing `"#"` would steal other `#` tokens,
   or when the match is not a regex.
 
-Lexical `prec` on `"#"` can beat `#f` even though `"#"` is shorter. But then
-`#f` also starts with `"#"`, so it is no longer a boolean unless that rule
-shares `"#"` too.
+Lexical `prec` on `"#"` can beat `#f` even though `"#"` is shorter. Then
+`#f` also starts with `"#"`, so it is no longer a boolean unless that
+rule shares `"#"` too.

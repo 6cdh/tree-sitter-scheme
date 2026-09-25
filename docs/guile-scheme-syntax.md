@@ -1,18 +1,20 @@
 # Guile Scheme Reader Syntax
 
-GNU Guile 3.0.11 inherits the R5RS formal reader and documents further
-datum syntax in the Reference Manual. It does not publish one reader
-grammar. *Syntax Summary* covers special forms such as `lambda` and
-`if`. Those forms are not reader syntax. The formal core is R5RS
-section 7.1. Other reader rules are reconstructed from the pages named
-below.
-
-This document is compact formal syntax. It does not catalog
-implementation behavior. When published wording is unclear, GNU Guile
-3.0.11 `read` was used once to verify it, and that interpretation is
-written into the productions.
-
 ## Scope and sources
+
+This document specifies GNU Guile 3.0.11 reader syntax as compact formal
+productions. It does not catalog implementation behavior. Special forms
+such as `lambda` and `if` are not reader syntax. See
+[Syntax Summary][syntax-summary].
+
+Guile inherits the R5RS reader. The formal core is R5RS section 7.1.
+The Reference Manual documents additional datum syntax but does not
+publish a single reader grammar. Remaining rules are reconstructed
+from the pages named under Sources.
+
+When published wording is unclear, GNU Guile 3.0.11 `read` was used
+once to verify it, and that interpretation is written into the
+productions.
 
 ### Target, inheritance, and default reader
 
@@ -35,47 +37,48 @@ The inherited standard is R5RS. Default `(read-options)` is:
 | `positions` | on | source properties; no token syntax |
 
 `keywords` may also be `'prefix` or `'postfix`. Those two styles are
-mutually exclusive. See Optional reader syntax.
+mutually exclusive. See [Optional reader syntax](#optional-reader-syntax).
 
-`bytestrings` is a GNU Guile 3.0.11 addition. NEWS, *Scheme Read*, and
-the SRFI-207 node document it.
+`bytestrings` is a GNU Guile 3.0.11 addition. NEWS,
+[Scheme Read][scheme-read], and [SRFI-207][srfi-207] document it.
 
-*Scheme Read* documents these per-port directives: `#!fold-case`,
-`#!no-fold-case`, `#!curly-infix`, and
-`#!curly-infix-and-bracket-lists`. They are not data.
+[Scheme Read][scheme-read] documents these per-port directives:
+`#!fold-case`, `#!no-fold-case`, `#!curly-infix`, and
+`#!curly-infix-and-bracket-lists`. They are atmosphere, not datums.
 
 ### Sources
 
 - Inherited formal core: R5RS section 7.1 in `docs/r5rs.txt`
 - [Scheme Read][scheme-read]: read options and per-port directives
-- Reader forms: [expression syntax][expression-syntax],
+- Reader pages: [expression syntax][expression-syntax],
   [comments][comments], [block comments][block-comments],
   [case sensitivity][case-sensitivity], [keyword syntax][keywords],
   [reader extensions][reader-extensions]
-- Per-type pages: [symbols][symbols], [strings][strings],
-  [characters][characters], [numbers][numbers], [vectors][vectors],
-  [bit vectors][bit-vectors], [arrays][arrays], [SRFI-4][uniform-vectors],
-  [bytevectors][bytevectors], [Nil][nil]
+- Datum type pages: [booleans][booleans], [symbols][symbols],
+  [strings][strings], [characters][characters], [numbers][numbers],
+  [vectors][vectors], [bit vectors][bit-vectors], [arrays][arrays],
+  [SRFI-4][uniform-vectors], [bytevectors][bytevectors], [Nil][nil]
 - Optional syntax: [SRFI-88][srfi-88], [SRFI-105][srfi-105],
   [SRFI-62][srfi-62], [SRFI-207][srfi-207]
 - GNU Guile 3.0.11 NEWS: `bytestrings`
-- [Scheme Syntax][scheme-syntax] is the menu for the pages above
+- Manual menu: [Scheme Syntax][scheme-syntax]
 
-Unclear published wording was checked against GNU Guile 3.0.11
+Unclear published wording was also checked against GNU Guile 3.0.11
 `ice-9/read.scm` at `f7e1255dbdcb755b4c8e7e0331384e4668ceb78f`. Extra
-forms that source accepts are not syntax.
+forms that `ice-9/read.scm` accepts are not syntax.
 
 ### Notation
 
-The productions use the R5RS BNF extensions. `<thing>*` is zero or more.
+Productions use R5RS BNF notation. `<thing>*` is zero or more.
 `<thing>+` is one or more. `empty` is the empty string. `datum*` in
-running text means zero or more data with intertoken space between them.
+running text means zero or more datums with intertoken space between
+them.
 
-Adjacent literal prefixes and nonterminals are adjacent in the input.
-For example, `#:<symbol>` has no intertoken space. A production shows
+Concatenation in a production means concatenation in the input. For
+example, `#:<symbol>` has no intertoken space. A production shows
 `<intertoken space>` only where space is part of that form.
 
-Each production is one of:
+A section note marks each production as one of:
 
 - **quoted:** copied from a named published grammar
 - **adapted:** an inherited production with Guile terminals added or
@@ -85,8 +88,8 @@ Each production is one of:
 
 Productions describe the default reader unless a named option is on.
 Default Guile symbols retain case. Boolean names and number prefixes
-are case-insensitive; character names use the lowercase spellings in
-the Characters tables. `<hex digit>` is `0`–`9` and
+are case-insensitive. Character names use the lowercase spellings in
+the [Characters][characters] tables. `<hex digit>` is `0`–`9` and
 `a`–`f` in any case.
 
 ## Default reader syntax
@@ -95,14 +98,14 @@ Unchanged R5RS number and identifier productions are cited, not copied.
 
 ### Intertoken space
 
-Adapted from R5RS 7.1.1. Nested `#|...|#` is reconstructed from [Block
-Comments][block-comments] (SRFI-30). `#!...!#` is reconstructed from
-the same page. Datum comments are SRFI-62. Directives are reconstructed
-from *Scheme Read*.
+Adapted from R5RS 7.1.1. Nested `#|...|#` and `#!...!#` are
+reconstructed from [Block Comments][block-comments] (SRFI-30). Datum
+comments are SRFI-62. Directives are reconstructed from
+[Scheme Read][scheme-read].
 
-*Scheme Read* discards whitespace before a token and does not list the
-characters. The verified set is space, tab, formfeed, return, and
-newline.
+[Scheme Read][scheme-read] discards whitespace before a token but does
+not list the characters. The verified set is space, tab, formfeed,
+return, and newline.
 
 ```text
 <intertoken space> --> <atmosphere>*
@@ -122,31 +125,32 @@ newline.
                     |  #!curly-infix-and-bracket-lists
 ```
 
-`#;` followed by one datum is on by default. A block-comment body may
-contain balanced nested block comments.
+Datum comments are on by default: `#;` plus one datum. A block-comment
+body may contain balanced nested block comments.
 
-Directive names are the lowercase spellings *Scheme Read* prints. After
-the name, reading continues at the next character. `#!fold-case` and
-`#!no-fold-case` toggle `case-insensitive`. `#!curly-infix` turns
-`curly-infix` on. `#!curly-infix-and-bracket-lists` turns `curly-infix`
-on and `square-brackets` off.
+Directive names are the lowercase spellings printed in
+[Scheme Read][scheme-read]. After the name, reading continues at the
+next character. `#!fold-case` and `#!no-fold-case` toggle
+`case-insensitive`. `#!curly-infix` turns `curly-infix` on.
+`#!curly-infix-and-bracket-lists` turns `curly-infix` on and
+`square-brackets` off.
 
-A matching directive is atmosphere and does not require `!#`. Any other
-text after `#!` is the Block Comments form and must end at `!#`.
+If `#!` is followed by one of those names, the directive is atmosphere
+and does not need `!#`. Any other text after `#!` is a script comment
+and must end at `!#`.
 
 ### Delimiters and tokens
 
 Adapted from R5RS 7.1.1. Square brackets are delimiters because
-`square-brackets` defaults to on. Guile's token forms are specified in
-the reader categories below.
+`square-brackets` is on by default.
 
 ```text
 <delimiter> --> <whitespace> | ( | ) | [ | ] | " | ;
 ```
 
-R5RS: tokens that require implicit termination (identifiers, numbers,
-characters, and dot) may be terminated by any `<delimiter>`, but not
-necessarily by anything else. Default `{`, `}`, and `|` are ordinary
+As in R5RS, a token that needs implicit termination (identifier,
+number, character, or dot) may end at any `<delimiter>`, and need not
+end at any other character. Default `{`, `}`, and `|` are ordinary
 symbol characters.
 
 ### Datum
@@ -186,8 +190,8 @@ Adapted from R5RS 7.1.2. Square brackets are included because
 
 ### Boolean
 
-Reconstructed from the Booleans page (`#true` / `#false` as in R7RS).
-The names are case-insensitive.
+Reconstructed from [Booleans][booleans] (`#true` / `#false` as in
+R7RS). The names are case-insensitive.
 
 ```text
 <boolean> --> #t | #f | #true | #false
@@ -195,24 +199,26 @@ The names are case-insensitive.
 
 ### Number
 
-Finite numbers follow the R5RS 7.1 integer, rational, real, and complex
-productions referenced above. Optional prefixes are `#b`, `#o`,
-`#d`, `#x`, `#e`, and `#i`, in any case, in either order.
+Finite numbers use the R5RS 7.1 integer, rational, real, and complex
+productions. Optional prefixes are `#b`, `#o`, `#d`, `#x`, `#e`, and
+`#i`, in any case, in either order.
 
-Signed infinities and NaNs are reconstructed from the numbers page. The
-published spellings are those four signed forms, with exactly one `0`
-after the point. They are numbers, not identifiers. They do not take
-`#e`. A radix prefix follows the same prefix rules.
+Signed infinities and NaNs are reconstructed from
+[Number Syntax][numbers]:
 
 ```text
 <infnan> --> +inf.0 | -inf.0 | +nan.0 | -nan.0
 ```
 
+The published spellings are those four signed forms, with exactly one
+`0` after the point. They are numbers, not identifiers. They do not
+take `#e`. A radix prefix follows the same prefix rules.
+
 ### Symbol
 
-Ordinary symbols follow the R5RS 7.1 identifier syntax referenced
-above. The extended form is reconstructed from the symbol page. The
-body is not defined there; it runs to the first `}#`.
+Ordinary symbols use the R5RS 7.1 identifier syntax. The extended form
+is reconstructed from [Symbol Read Syntax][symbols]. That page does
+not define the body; it runs to the first `}#`.
 
 ```text
 <symbol> --> <r5rs identifier> | <extended symbol>
@@ -224,8 +230,9 @@ An R5RS identifier may begin with `:`. With default `keywords` `#f`,
 
 ### Keyword
 
-Reconstructed from the keyword page. With `keywords` at `#f`, the only
-keyword spelling is `#:NAME`. The token is contiguous.
+Reconstructed from [Keyword Read Syntax][keywords]. With `keywords` at
+`#f`, the only keyword spelling is `#:NAME`. There is no intertoken
+space after `#:`.
 
 ```text
 <keyword> --> #:<symbol>
@@ -236,7 +243,7 @@ contain colons.
 
 ### Character
 
-Reconstructed from the characters page.
+Reconstructed from [Characters][characters].
 
 ```text
 <character> --> #\<any character>
@@ -249,7 +256,7 @@ Reconstructed from the characters page.
 The dotted circle is U+25CC and precedes the combining character.
 `#\x` uses a lowercase `x` and one through eight hexadecimal digits.
 
-Names from the manual tables:
+Names from [Characters][characters]:
 
 - Long: `nul`, `alarm`, `backspace`, `tab`, `linefeed`, `newline`,
   `vtab`, `page`, `return`, `esc`, `space`, `delete`
@@ -266,8 +273,8 @@ code point.
 
 ### String
 
-Reconstructed from the strings page. This is the default escape set.
-`r6rs-hex-escapes` and `hungry-eol-escapes` are optional.
+Reconstructed from [String Syntax][strings]. This is the default
+escape set. `r6rs-hex-escapes` and `hungry-eol-escapes` are optional.
 
 ```text
 <string> --> " <string element>* "
@@ -277,8 +284,7 @@ Reconstructed from the strings page. This is the default escape set.
                  |  newline
                  |  x <hex digit> <hex digit>
                  |  u <hex digit> <hex digit> <hex digit> <hex digit>
-                 |  U <hex digit> <hex digit> <hex digit>
-                      <hex digit> <hex digit> <hex digit>
+                 |  U <hex digit> <hex digit> <hex digit> <hex digit> <hex digit> <hex digit>
 <vertical line> --> |
 ```
 
@@ -288,7 +294,8 @@ the string. Default `\x` is exactly two hex digits.
 
 ### Vector, bytevector, and bitvector
 
-Reconstructed from the vectors, bytevectors, and bit-vectors pages.
+Reconstructed from [Vector Syntax][vectors],
+[Bytevectors][bytevectors], and [Bit Vectors][bit-vectors].
 
 ```text
 <vector>     --> #( <datum>* )
@@ -303,7 +310,8 @@ empty bitvector. `#u8(...)` is a SRFI-4 array, not a `#vu8` bytevector.
 
 ### Array
 
-Reconstructed from the arrays page and the SRFI-4 overview.
+Reconstructed from [Array Syntax][arrays] and the
+[SRFI-4 Overview][uniform-vectors].
 
 ```text
 <array>          --> <ranked array> | <unranked array> | <shaped array>
@@ -322,14 +330,15 @@ Reconstructed from the arrays page and the SRFI-4 overview.
 <sign>           --> + | -
 ```
 
-Rank is omitted when the array is rank 1, non-shared, and zero-origin.
-An empty tag is an untyped array. Tags `a` and `b` are strings and
-bitvectors. Rank 0 has the form `#0<vectag>(<scalar>)` and needs one
-element. Written dimensions must match the rank. Dimensions may be
-omitted when the nested lists determine them.
+Rank is omitted for a rank-1, unshared, zero-origin array. An empty tag
+is an untyped array. Tag `a` denotes strings. Tag `b` denotes bitvectors.
 
-`#(` is the vector production. The array chapter also prints `#(` for a
-rank-1 zero-origin unshared array. Both descriptions are published.
+Rank 0 has the form `#0<array tag>(<scalar>)` and needs one element.
+Written dimensions must match the rank. Dimensions may be omitted when
+the nested lists determine them.
+
+`#(` is the vector production. The array chapter also writes `#(` for a
+rank-1, zero-origin, unshared array. Both descriptions are published.
 
 Examples from the manual: `#@2(1 2 3)`, `#2((1 2 3) (4 5 6))`,
 `#u8(0 1 2)`, `#2u32@2@3((1 2) (2 3))`, `#2()`, `#2:0:2()`, `#0(12)`.
@@ -344,14 +353,15 @@ Reconstructed from [Nil][nil]: the external representation is `#nil`.
 
 ## Optional reader syntax
 
-Each mode below is off in the default `(read-options)` value.
+Each read-option mode below is off by default.
 
 ### Prefix and postfix keywords
 
 **Activation:** `keywords` set to `'prefix` or `'postfix`.
 **Default:** `#f`, so only `#:NAME` is a keyword.
 
-**Changed production** (reconstructed from the keyword page):
+**Changed production** (reconstructed from
+[Keyword Read Syntax][keywords]):
 
 ```text
 <keyword> --> #:<symbol>
@@ -359,9 +369,9 @@ Each mode below is off in the default `(read-options)` value.
            |  <ordinary symbol ending in :> ; keywords 'postfix
 ```
 
-The tokens stay contiguous. Colon is not a delimiter, so under
-`'postfix` the name `foo:bar:` is one keyword. The two styles are
-mutually exclusive.
+There is no intertoken space in these tokens. Colon is not a
+delimiter, so under `'postfix` the name `foo:bar:` is one keyword. The
+two styles are mutually exclusive.
 
 ### Case insensitivity
 
@@ -377,8 +387,9 @@ mutually exclusive.
 
 **Change:** string `\x` takes one through eight hex digits followed by
 `;`, instead of exactly two hex digits. [Scheme Read][scheme-read] also
-says this option affects character hex escapes, but [Characters][characters]
-does not specify a replacement production; that part remains unresolved.
+says this option affects character hex escapes, but
+[Characters][characters] does not specify a replacement production.
+That interaction is unresolved.
 
 **Interaction:** `|...|` symbols under `r7rs-symbols` always use this
 `\x` form, whether or not `r6rs-hex-escapes` is on.
@@ -389,13 +400,13 @@ does not specify a replacement production; that part remains unresolved.
 **Default:** off.
 
 **Change:** after a backslash-newline, leading whitespace on the next
-line is discarded. *String Syntax* does not list the characters. The
-verified set is tab and Unicode `Zs` spaces.
+line is discarded. [String Syntax][strings] does not list the
+characters. The verified set is tab and Unicode `Zs` spaces.
 
 ### R7RS vertical-line symbols
 
 **Activation:** `r7rs-symbols`.
-**Default:** off. A `|` is then an ordinary symbol character.
+**Default:** off, so `|` is an ordinary symbol character.
 
 **Changed production:**
 
@@ -405,15 +416,15 @@ verified set is tab and Unicode `Zs` spaces.
 
 `|...|` is an identifier. The body uses string escapes, with `|` as the
 delimiter instead of `"`. The escapes include `\0`, `\f`, `\v`, `\(`,
-`\uXXXX`, and `\UXXXXXX`. `\x` in this body takes one through
-eight hex digits followed by `;`, independent of `r6rs-hex-escapes`.
+`\uXXXX`, and `\UXXXXXX`. `\x` in this body takes one through eight hex
+digits followed by `;`, independent of `r6rs-hex-escapes`.
 
 ### Curly-infix
 
 **Activation:** `curly-infix`, `#!curly-infix`, or
 `#!curly-infix-and-bracket-lists`.
-**Default:** off. `{n + 1}` is then the symbol `{n`, then `+`, then the
-symbol `1}`.
+**Default:** off, so `{n + 1}` reads as the symbol `{n`, then `+`, then
+the symbol `1}`.
 
 **Changed production** (reconstructed from [SRFI-105][srfi-105]):
 
@@ -422,11 +433,11 @@ symbol `1}`.
                |  { <datum>+ . <datum> }
 ```
 
-The reader rewrites that written list (`{}` → `()`, `{x}` → `x`,
-`{x y}` → `(x y)`, a repeated operator n-ary, otherwise `$nfx$`).
-Neoteric application inside a curly list needs no space before `(`,
-`[`, or `{`. Outside a curly list, `f(x)` is still the symbol `f` and
-then a list.
+The reader rewrites the written list: `{}` → `()`, `{x}` → `x`,
+`{x y}` → `(x y)`; a repeated operator becomes n-ary; otherwise
+`$nfx$`. Inside a curly list, neoteric application needs no space
+before `(`, `[`, or `{`. Outside a curly list, `f(x)` is still the
+symbol `f` followed by a list.
 
 `#!curly-infix-and-bracket-lists` also turns `square-brackets` off.
 With `square-brackets` off and `curly-infix` on, `[a b]` reads as
@@ -438,22 +449,24 @@ With `square-brackets` off and `curly-infix` on, `[a b]` reads as
 [SRFI-207][srfi-207].
 **Default:** off.
 
-**Change:** `#u8"..."` is SRFI-207. `#u8(...)` remains a SRFI-4 array.
-`#vu8(` remains the bytevector production.
+**Change:** `#u8"..."` is a SRFI-207 byte string. `#u8(...)` remains a
+SRFI-4 array. `#vu8(` remains the bytevector production.
 
-Published SRFI-207 content bytes are U+0020 through U+007E. Escapes are
-`\a`, `\b`, `\t`, `\n`, `\r`, `\"`, `\\`, `\|`, `\x` with optional
-leading zeroes, one or two hex digits, and `;`, and a hungry line
+Published SRFI-207 content bytes are U+0020 through U+007E. Escapes
+are `\a`, `\b`, `\t`, `\n`, `\r`, `\"`, `\\`, `\|`; `\x` with optional
+leading zeroes, one or two hex digits, and `;`; and a hungry line
 continuation.
 
 ### Reader extensions
 
-**Activation:** `read-hash-extend` from [reader extensions][reader-extensions].
+**Activation:** `read-hash-extend` from
+[reader extensions][reader-extensions].
 **Default:** no user callback. Callback syntax is not part of this
 fixed formal syntax. An unknown `#` plus a character is an error when
 no callback is installed.
 
 [scheme-syntax]: https://www.gnu.org/software/guile/manual/html_node/Scheme-Syntax.html
+[syntax-summary]: https://www.gnu.org/software/guile/manual/html_node/Syntax-Summary.html
 [expression-syntax]: https://www.gnu.org/software/guile/manual/html_node/Expression-Syntax.html
 [scheme-read]: https://www.gnu.org/software/guile/manual/html_node/Scheme-Read.html
 [comments]: https://www.gnu.org/software/guile/manual/html_node/Comments.html
@@ -464,6 +477,7 @@ no callback is installed.
 [symbols]: https://www.gnu.org/software/guile/manual/html_node/Symbol-Read-Syntax.html
 [keywords]: https://www.gnu.org/software/guile/manual/html_node/Keyword-Read-Syntax.html
 [characters]: https://www.gnu.org/software/guile/manual/html_node/Characters.html
+[booleans]: https://www.gnu.org/software/guile/manual/html_node/Booleans.html
 [numbers]: https://www.gnu.org/software/guile/manual/html_node/Number-Syntax.html
 [vectors]: https://www.gnu.org/software/guile/manual/html_node/Vector-Syntax.html
 [bit-vectors]: https://www.gnu.org/software/guile/manual/html_node/Bit-Vectors.html
