@@ -49,7 +49,7 @@ CHICKEN R7RS literals and numbers
 CHICKEN characters and string escapes
 ==================
 
-#\space #\Space #\linefeed #\LINEFEED #\nul #\vtab #\page #\esc
+#\space #\linefeed #\nul #\vtab #\page #\esc
 #\x3bb #\X3bb #\u03bb #\U0001f600
 "\a\b\t\n\r\"\\\v\f\|\'\x41;\u03bb\U0001f600\101"
 "before\
@@ -58,8 +58,6 @@ CHICKEN characters and string escapes
 ---
 
 (program
-  (character)
-  (character)
   (character)
   (character)
   (character)
@@ -90,11 +88,25 @@ CHICKEN characters and string escapes
     (escape_sequence)))
 
 ==================
-CHICKEN symbols and keyword modes
+CHICKEN uppercase string hex escape
+==================
+
+"\X41;" #u8"\X42;"
+
+---
+
+(program
+  (string
+    (escape_sequence))
+  (byte_string
+    (escape_sequence)))
+
+==================
+CHICKEN symbols and default keywords
 ==================
 
 plain foo:bar |quoted symbol| + - ...
-#:always suffix: :prefix : #:|| :|prefix name|
+#:always suffix: :prefix : #:||
 
 ---
 
@@ -108,11 +120,10 @@ plain foo:bar |quoted symbol| + - ...
   (keyword
     name: (symbol))
   (keyword)
-  (keyword)
+  (symbol)
   (symbol)
   (keyword
-    name: (symbol))
-  (keyword))
+    name: (symbol)))
 
 ==================
 CHICKEN lists, vectors, abbreviations, and labels
@@ -282,9 +293,6 @@ This is a simple string with an embedded `##' character
 and substituted expressions: (+ three 99) ==> #(+ three 99)
 (three is "#{three}")
 EOF
-#<#FMT
-#{x ~A}
-FMT
 #<#EMPTY
 EMPTY
 #<#END
@@ -303,15 +311,28 @@ END
         (number)))
     (here_interpolation
       expression: (symbol)))
-  (interpolated_here_string
-    (here_interpolation
-      expression: (symbol)
-      format: (here_string_format)))
   (interpolated_here_string)
   (interpolated_here_string
     (here_interpolation
       expression: (list
         (symbol)))))
+
+==================
+Trailing interpolation text is rejected
+==================
+
+#<#BAD
+#{x ~A}
+BAD
+
+---
+
+(program
+  (interpolated_here_string
+    (here_interpolation
+      (ERROR
+        (symbol))
+      expression: (symbol))))
 
 ==================
 CHICKEN here-document may end at EOF
@@ -359,8 +380,7 @@ WRAP
 (program
   (interpolated_here_string
     (here_interpolation
-      expression: (here_string)
-      format: (here_string_format)))
+      expression: (here_string)))
   (interpolated_here_string
     (here_interpolation
       expression: (list
@@ -396,8 +416,7 @@ END
         (here_string))))
   (interpolated_here_string
     (here_interpolation
-      expression: (here_string)
-      format: (here_string_format))))
+      expression: (here_string))))
 
 ==================
 Terminator-like prefixes preserve interpolation boundaries
@@ -485,12 +504,14 @@ Unknown bang token is rejected
 Fixed-name token boundaries use editor recovery
 ==================
 
-#!eofx #\spacefoo
+#!eofx #\spacefoo #\Space
 
 ---
 
 (program
   (special_object)
+  (symbol)
+  (character)
   (symbol)
   (character)
   (symbol))

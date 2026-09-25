@@ -15,10 +15,9 @@ module.exports = grammar({
 
   extras: _ => [],
 
-  // Reader parameters control keywords, symbol escapes, case sensitivity,
-  // and list brackets. This static grammar accepts the union of their
-  // published modes throughout the file. It also accepts number vectors
-  // registered by (chicken number-vector). CHICKEN performs value and
+  // Parse the default reader settings. Reader parameters can change the
+  // syntax, but this static grammar does not. Number-vector tags other
+  // than u8 are default source syntax. CHICKEN performs value and
   // constructor checks at runtime.
   externals: $ => [
     // `#<<` is one named token. `#<#` start/content/hash/end are hidden so
@@ -99,10 +98,7 @@ module.exports = grammar({
     keyword: $ =>
       choice(
         syntax.keyword.hashColon(alias($._keyword_symbol, $.symbol)),
-        token(
-          choice(
-            syntax.keyword.chickenPrefix,
-            syntax.keyword.chickenSuffix))),
+        token(syntax.keyword.chickenSuffix)),
     _keyword_symbol: _ => token(syntax.symbol.chickenKeywordName),
 
     special_object: _ => syntax.specialObject.chicken,
@@ -165,15 +161,12 @@ module.exports = grammar({
         seq(
           $._here_string_hash_brace,
           field("expression", $._datum),
-          optional(field("format", $.here_string_format)),
+          // Nested here strings leave their trailing LF outside the datum.
+          optional(token(core.whitespace.r7rs)),
           "}"),
         seq(
           $._here_string_hash,
           field("expression", $._datum))),
-    // Includes a nested here-string's trailing LF: closing tags leave that
-    // newline outside the datum so the enclosing context owns the line break.
-    here_string_format: _ => token(/[^}]+/),
-
     foreign_declare: _ => syntax.foreignDeclare.chicken,
     location_expr: $ => syntax.locationExpr.chicken($._datum),
     cond_expand: $ => syntax.condExpand.chicken($._intertoken, $._datum),

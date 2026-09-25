@@ -52,11 +52,11 @@ match unpublished `read` quirks.
 The CHICKEN parser is `dialects/chicken/` (language name `scheme`). It accepts
 the CHICKEN Scheme 6.0.0 reader syntax documented in
 `docs/chicken-scheme-syntax.md`, including keywords, alternative list brackets,
-number vectors, here-documents, and hash dispatch forms. It accepts a fixed
-union of reader parameter modes but does not apply parameter changes or run
-application-defined reader callbacks. Its here-document scanner matches closing
-tags exactly. `#<<` produces `here_string`; `#<#` produces
-`interpolated_here_string`, with interpolations and `##` as children.
+number vectors, here-documents, and hash dispatch forms. It parses the default
+reader settings and does not apply parameter changes or run application-defined
+reader callbacks. Its here-document scanner matches closing tags exactly.
+`#<<` produces `here_string`; `#<#` produces `interpolated_here_string`, with
+interpolations and `##` as children.
 
 The frozen R5RS parser is a separate Tree-sitter project in `dialects/r5rs/`.
 It is not a drop-in for the default parser or its queries. Build it in that

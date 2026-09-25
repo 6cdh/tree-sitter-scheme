@@ -114,8 +114,7 @@ const chickenBarSymbol = seq(
   )),
   "|",
 );
-const chickenInitial = /[A-Za-z!$%&*\/<=>?^_~]/;
-const chickenInitialWithColon = /[A-Za-z!$%&*\/:<=>?^_~]/;
+const chickenInitial = /[A-Za-z!$%&*\/:<=>?^_~]/;
 const chickenSubsequent = /[A-Za-z!$%&*\/:<=>?^_~0-9+.@-]/;
 const chickenNonColonSubsequent = /[A-Za-z!$%&*\/<=>?^_~0-9+.@-]/;
 const chickenSymbolTail = repeat(chickenSubsequent);
@@ -142,16 +141,14 @@ const chickenBareSymbol = (initial, tail = chickenSymbolTail) => choice(
     choice(initial, /[+\-@]/, "."),
     tail),
 );
-// Ordinary symbols omit a leading colon so :NAME can be a prefix keyword.
-// A lone : remains a symbol. Keyword names after #: keep colon in both
-// positions.
+// The default suffix style leaves :NAME as a symbol. A final colon belongs
+// to the suffix keyword rule; names after #: keep colon in both positions.
 symbol.chicken = choice(
   chickenBareSymbol(chickenInitial, chickenOrdinaryTail),
   chickenBarSymbol,
-  ":",
 );
 symbol.chickenKeywordName = choice(
-  chickenBareSymbol(chickenInitialWithColon),
+  chickenBareSymbol(chickenInitial),
   chickenBarSymbol,
 );
 // Default Guile keeps R5RS identifiers and treats braces and vertical bar
@@ -185,12 +182,8 @@ const keyword = {
   // node and any alias.
   hashColon: name => seq("#:", field("name", name)),
   chickenSuffix: seq(
-    chickenBareSymbol(chickenInitialWithColon),
+    chickenBareSymbol(chickenInitial),
     ":",
-  ),
-  chickenPrefix: seq(
-    ":",
-    choice(chickenBareSymbol(chickenInitialWithColon), chickenBarSymbol),
   ),
 };
 

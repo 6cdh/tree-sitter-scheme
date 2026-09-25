@@ -18,7 +18,6 @@
   (byte_string)
   (here_string)
   (interpolated_here_string)
-  (here_string_format)
   (foreign_declare)
 ] @string
 [

@@ -31,7 +31,9 @@ const stringEscape = {
   ))),
   chicken: seq("\\", token(choice(
     /[abtnrvf"\\|']/,
-    /x[0-9a-fA-F]{2};/,
+    // The formal syntax inherits R7RS case-insensitivity for `x`; the
+    // CHICKEN 6.0.0 reader itself warns on uppercase `X`.
+    /[xX][0-9a-fA-F]{2};/,
     /u[0-9a-fA-F]{4}/,
     /U[0-9a-fA-F]{8}/,
     /[0-7]{3}/,

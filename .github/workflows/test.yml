@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -52,6 +53,7 @@ jobs:
           node ../../scripts/write-chicken-scanner-corpus.js
           tree-sitter generate
           tree-sitter test
+          tree-sitter query -q queries/highlights.scm test/corpus/chicken.scm
 
   chicken-incremental:
     runs-on: ubuntu-latest

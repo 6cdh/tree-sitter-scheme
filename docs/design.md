@@ -176,12 +176,9 @@ r7rs: seq("#", token(choice(
 ))),
 ```
 
-CHICKEN booleans and number-vector tags share `"#"`. After that
-delimiter, the `f32` token beats the shorter `f`. Thus
-`numberVector.chickenTag` may be a token: it represents the body after a
-prefix, not a complete spelling. Internal whitespace or opaque bodies may
-also be tokenized when their boundaries belong to the factory and cannot
-compete as standalone nodes.
+The `#` remains visible so other hash-dispatch forms can compete. Internal
+whitespace or opaque bodies may also be tokenized when their boundaries
+belong to the factory and cannot compete as standalone nodes.
 
 ### Precedence and factories
 

@@ -43,26 +43,14 @@ const character = {
         /[xX][0-9a-fA-F]+/,
         anyCharacter))),
   // CHICKEN adds exact-width u/U escapes and five character names to R7RS.
-  // The dialect accepts case-folded character names as part of its static
-  // reader-mode union. The u/U prefixes remain case-sensitive.
+  // Character names and the u/U prefixes remain case-sensitive.
   chicken:
     seq(
       "#\\",
       token(choice(
-        /[aA][lL][aA][rR][mM]/,
-        /[bB][aA][cC][kK][sS][pP][aA][cC][eE]/,
-        /[dD][eE][lL][eE][tT][eE]/,
-        /[eE][sS][cC][aA][pP][eE]/,
-        /[nN][eE][wW][lL][iI][nN][eE]/,
-        /[nN][uU][lL][lL]/,
-        /[rR][eE][tT][uU][rR][nN]/,
-        /[sS][pP][aA][cC][eE]/,
-        /[tT][aA][bB]/,
-        /[lL][iI][nN][eE][fF][eE][eE][dD]/,
-        /[vV][tT][aA][bB]/,
-        /[nN][uU][lL]/,
-        /[pP][aA][gG][eE]/,
-        /[eE][sS][cC]/,
+        "alarm", "backspace", "delete", "escape", "newline",
+        "null", "return", "space", "tab",
+        "linefeed", "vtab", "nul", "page", "esc",
         /[xX][0-9a-fA-F]+/,
         /u[0-9a-fA-F]{4}/,
         /U[0-9a-fA-F]{8}/,
