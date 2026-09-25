@@ -1,131 +1,77 @@
 # Dialect parser workflow
 
-Use this workflow to add, rewrite, or review a dialect parser. For an
-existing parser, record available evidence and investigate only the gaps.
+Collect published syntax, formalize it, then implement it. For existing parsers,
+reuse established sources and productions; fill specification gaps before
+changing the affected grammar. [design.md](design.md) owns the contracts.
 
-Published reader syntax defines the baseline. Real usage informs optional
-coverage. The parser implements an explicit selection of that syntax, with
-documented limits for editing and static parsing.
+## 1. Collect sources
 
-[design.md](design.md) owns grammar structure, shared fragments, tree shape,
-and parser verification rules. This document owns the work process.
+Establish the target release, inherited standard, and reader defaults. Collect
+precise document sections for whitespace, comments, directives, identifiers,
+literals, collections, abbreviations, labels, and dialect reader forms.
+Include extension defaults and activation controls; exclude special-form
+semantics. Verify extracted escapes, Unicode, and production names against
+the sources. Resolve missing sources through documentation or ask the user
+about blockers.
 
-## 1. Establish the documented baseline
+Done: each applicable reader category has a cited or inherited rule, with
+remaining source gaps explicit.
+
+## 2. Write the specification
 
 Create or update `docs/<dialect>-scheme-syntax.md` using the
-[dialect syntax document structure](design.md#dialect-syntax-document-structure)
-with:
+[required structure](design.md#dialect-syntax-document-structure). Formalize
+published prose, cite each production, and reference unchanged inherited rules.
+Specify boundaries and constraints. Separate default syntax, including enabled
+extensions, from optional syntax for disabled extensions.
 
-- Target release, inherited standard, and default reader configuration.
-- Published rules for whitespace, comments, directives, identifiers,
-  booleans, numbers, characters, strings, collections, abbreviations,
-  labels, and implementation-specific reader forms.
-- Precise source sections and versions. Reuse inherited productions by
-  reference when the dialect does not change them.
-- Explicit gaps or contradictions in the published rules.
+Only investigate interpreter behavior for a specific published rule already
+marked unclear or ambiguous in the specification. Follow the design's ambiguity
+procedure; missing documentation alone is insufficient. Keep parser decisions
+out of the syntax specification.
 
-Use formal productions where available. Otherwise summarize the published
-reader rules and identify any derived productions as a reconstruction.
-Verify extracted text against the source, especially escapes, Unicode,
-and production names. Special-form semantics are outside this inventory.
+Done: collected rules are formalized or inherited; unresolved questions are
+explicit, raised with the user when blocking, and affected rules deferred.
 
-Keep the default baseline separate from optional syntax. Record controls
-that change syntax, their defaults, and how optional forms are enabled.
-Keep evidence about published gaps separate from known deviations, as
-described in [design.md](design.md). Neither overrides clear published rules.
+## 3. Implement the specification
 
-Done: every reader category has a cited rule, an inherited rule, an explicit
-absence, or a recorded unresolved gap.
+Support default syntax and extensions enabled by default. Exclude extensions
+disabled by default unless the user explicitly requests otherwise. Record
+coverage in the tracking issue or review description:
 
-## 2. Survey real usage
+| Specification production | Default setting | Decision and reason | Grammar / corpus case |
+| --- | --- | --- | --- |
+| Name and link | Enabled / disabled | Include / exclude / defer | Rule and case |
 
-Before searching, name a small sample and a search budget. A useful starting
-sample is the implementation's source, one major ecosystem project, and two
-independent libraries. Adjust this to the dialect's ecosystem and record why.
+Group inherited rules when they share tests. Before coding, define included
+features' tree shapes and resolve conflicts in any requested combination of
+modes. Record coverage exceptions, editor permissiveness, and reader-state
+limits in grammar comments and tests.
 
-For each optional syntax candidate, record repository, revision, file,
-example, and the reader configuration or extension that enables it. Distinguish
-ordinary source from fixtures, generated files, and embedded text. Record
-independent projects using a feature; occurrence counts alone do not establish
-broad use. Describe findings as evidence from the sample, not ecosystem-wide
-prevalence.
+Implement one reader category with its corpus expectations at a time. Reuse
+fragments and follow the design contracts. Derive positive, negative, boundary,
+and interaction cases from the specification and parser contract; account for
+editor permissiveness. Check state-changing incremental edits for scanners.
+Adapt upstream tests only for specified reader syntax, retaining revision,
+attribution, and license notices; translate value assertions into tree
+expectations where appropriate.
 
-Done: the declared sample has been searched and candidates have evidence.
-Expand research only to answer a named question that could change coverage.
+Return to sources and update the specification before implementing any newly
+identified syntax requirement.
 
-## 3. Decide parser coverage
+Done: included productions map to grammar rules and meaningful tests; exclusions
+and parser limits are explicit.
 
-Keep a short work record in the dialect's tracking issue or review description.
-Use the table below to connect syntax evidence to implementation and tests.
-Group inherited rules when a shared test group covers them.
+## 4. Verify and review
 
-| Reader feature | Source / usage evidence | Default or optional | Decision and reason | Grammar rule / corpus case |
-| --- | --- | --- | --- | --- |
-| Feature name | Section or pinned file | Default / optional | Include / exclude / defer | Rule and case, or pending |
+Follow [generation and verification rules](design.md#generated-files-and-verification)
+and [repository commands](../CONTRIBUTING.md). Generate each dialect from its own
+directory, run corpus tests, validate queries, and inspect tree shapes. Generate
+and test every parser affected by shared-fragment changes.
 
-Default syntax is the baseline. For each optional candidate, decide whether
-usage justifies support and whether it can coexist with the baseline.
-Popularity alone does not resolve a token or tree-shape conflict.
+Review the trace from sources to specification to grammar and tests. Acceptance
+alone does not establish correct tree shape. Fix in-scope defects and rerun
+affected checks; route syntax additions through steps 1 and 2.
 
-For example, a distinct dispatch prefix may fit a static union. A keyword
-mode that changes `name:` from a symbol to a keyword needs an explicit choice
-of interpretation. Check token boundaries as well as accepted spellings.
-
-Record unresolved gaps that affect included syntax before implementing it.
-State deliberate permissiveness and limits on reader state or callbacks.
-Put durable parser decisions in the owning grammar's comments and tests;
-keep syntax reference documents independent of the parser's implementation.
-
-Done: every candidate has a decision, and included features have defined
-interpretations and expected tree shapes. Deferred features remain visible.
-
-## 4. Implement by reader category
-
-Select existing shared fragments before adding new definitions. Do not add
-a dialect-named fragment that is only an alias of an unchanged inherited
-spelling. Follow [design.md](design.md) for fragment naming, node names,
-fields, precedence, and scanner use. Implement one reader category at a
-time with its corpus expectations.
-
-Derive expectations from documented syntax and the parser's stated contract.
-Adapt useful upstream reader tests with source revision and attribution;
-preserve applicable license notices. Convert reader value assertions into
-tree expectations only where they test reader syntax.
-
-Cover accepted forms, nearby rejected forms, token boundaries, and feature
-interactions. Negative cases must respect deliberate editor permissiveness.
-For stateful scanners, check incremental edits that change scanner state.
-
-Done: included features are connected to grammar rules and meaningful tests;
-any remaining limit is explicit.
-
-## 5. Verify and review
-
-Use the repository commands in [CONTRIBUTING.md](../CONTRIBUTING.md).
-Generate a dialect from its own directory. Run its corpus tests, validate its
-queries, and inspect representative trees. When shared fragments change,
-generate and test all affected parsers. Follow [design.md](design.md) for default generated files and dialect
-artifacts.
-
-Parse the sampled real files. Classify failures as implementation defects,
-excluded syntax, invalid input, or unresolved coverage questions. A parse without errors is useful evidence, but does not establish that the
-tree has the intended shape.
-
-Review against the coverage decisions, syntax sources, and design contract.
-Fix in-scope defects and rerun affected checks. Record new coverage proposals
-separately so a discovered extension does not silently expand the task.
-
-Done: required checks pass, review findings are resolved or explicitly deferred,
-and the work record reports remaining exclusions and verification limits.
-
-## Reusable checklist
-
-- [ ] Target version, inherited standard, defaults, and syntax sources recorded.
-- [ ] Reader categories covered; published gaps identified.
-- [ ] Bounded usage survey completed with pinned examples and activation details.
-- [ ] Coverage table decides default and optional features and conflicts.
-- [ ] Included syntax mapped to grammar rules and corpus cases.
-- [ ] Tree shape, queries, and deliberate permissiveness checked.
-- [ ] Generation and tests pass for every affected parser.
-- [ ] Sampled files parsed and failures classified.
-- [ ] Review completed; remaining limits and deferred work recorded.
+Done: required checks pass; review findings are resolved or explicitly deferred;
+the work record states remaining exclusions and verification limits.
