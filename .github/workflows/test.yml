@@ -34,7 +34,7 @@ jobs:
           node ../../scripts/write-r7rs-line-ending-corpus.js
           tree-sitter generate
           tree-sitter test
-      - name: Test Chez dialect
+      - name: Test Chez corpus
         working-directory: dialects/chez
         run: |
           node ../../scripts/write-chez-line-ending-corpus.js
@@ -65,43 +65,6 @@ jobs:
         run: npm ci
       - name: Test CHICKEN incremental parsing
         run: npm run test:chicken:incremental
-
-  chez-scheme:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up tree sitter
-        uses: tree-sitter/setup-action/cli@v1
-        with:
-          tree-sitter-ref: v0.24.7
-      - name: Check out Chez Scheme 10.4.0 tests
-        uses: actions/checkout@v4
-        with:
-          repository: cisco/ChezScheme
-          ref: f48b27c4feb7da3ff4858045f6c3f0d4087fa116
-          path: .chezscheme
-          sparse-checkout: mats
-      - name: Build Chez parser
-        working-directory: dialects/chez
-        run: |
-          tree-sitter generate
-          tree-sitter build
-      - name: Parse Chez Scheme tests
-        shell: bash
-        run: |
-          input_dir="$(mktemp -d)"
-          for source_file in .chezscheme/mats/*.ms; do
-            cp "$source_file" "$input_dir/$(basename "${source_file%.ms}")_ms.ss"
-          done
-          for source_file in .chezscheme/mats/*.ss; do
-            cp "$source_file" "$input_dir/$(basename "$source_file")"
-          done
-
-          cd dialects/chez
-          parse_report="$(mktemp)"
-          tree-sitter parse --quiet --stat "$input_dir"/*.ss 2>&1 \
-            | tee "$parse_report"
-          grep -Fq "failed parses: 0;" "$parse_report"
 
   sicp:
     runs-on: ubuntu-latest

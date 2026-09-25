@@ -165,14 +165,12 @@ Chez numbers
 ===
 
 #36rZZ #2r1010 #o1.4 #b1e10 #x1e20
-1/2 1.25 +nan.0 -inf.0 98## #e98##
+1/2 1.25 +nan.0 -inf.0
 #16r1+1i #02r10 #x1|53
 
 ---
 
 (program
-  (number)
-  (number)
   (number)
   (number)
   (number)
@@ -236,7 +234,7 @@ Chez compound and graph data
 #:pretty #{pretty unique}
 '(#1=(a) . #1#) #0=(a . #0#)
 #%car #2%car #3%car
-#!eof #!bwp #!base-rtd
+#!eof #!bwp
 
 ---
 
@@ -282,7 +280,6 @@ Chez compound and graph data
   (primitive
     prefix: (primitive_prefix)
     (symbol))
-  (special_object)
   (special_object)
   (special_object))
 
@@ -351,7 +348,7 @@ R6RS syntax abbreviations remain available
     (symbol)))
 
 ===
-Chez reader cases borrowed from upstream mats
+Chez reader cases adapted from Cisco ChezScheme v10.4.0 mats (Apache-2.0)
 ===
 
 #{pretty	unique} #{bar baz}
@@ -479,3 +476,65 @@ Adjacent mantissa-width numbers stay separate
 (program
   (number)
   (number))
+
+===
+Unpublished Chez internal object is rejected
+===
+
+#!base-rtd
+
+---
+
+(program
+  (ERROR))
+
+===
+Chez number placeholder is an identifier, not an R6RS number
+===
+
+98##
+
+---
+
+(program
+  (symbol))
+
+===
+Prefixed R5RS placeholders no longer form one number
+===
+
+#e98##
+
+---
+
+(program
+  (number)
+  (ERROR))
+
+===
+Malformed arbitrary-radix body does not form a number
+===
+
+#2r+++
+
+---
+
+(program
+  (ERROR
+    (vector_length)))
+
+===
+Malformed numeric and fixed-name tokens recover by splitting
+===
+
+#2r1/ #x1z #!eofx
+
+---
+
+(program
+  (number)
+  (symbol)
+  (number)
+  (symbol)
+  (special_object)
+  (symbol))

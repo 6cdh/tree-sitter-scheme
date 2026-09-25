@@ -81,6 +81,9 @@ module.exports = grammar({
     boolean: _ => syntax.boolean.r7rs,
     // These complete reader tokens must be lexed atomically. Leaving their
     // large expressions as parser rules makes generation expand for minutes.
+    // A malformed token can still recover as a valid number prefix followed
+    // by another datum, for example #x1z. No reader state or lookahead is
+    // modeled here.
     number: _ => token(syntax.number.chez),
     character: _ => syntax.character.chez,
 
@@ -127,6 +130,8 @@ module.exports = grammar({
       syntax.gensym.pretty($.symbol),
       syntax.gensym.unique($.symbol),
     ),
+    // Fixed names have the same editor recovery limit: #!eofx becomes
+    // #!eof followed by x.
     special_object: _ => syntax.specialObject.chez,
 
     quote: $ => syntax.abbrev.quote($._intertoken, $._datum),

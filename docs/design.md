@@ -86,6 +86,11 @@ as `(.)`. The R5RS parser accepts `123abc` as a number followed by a
 symbol without implicit token termination. These exceptions do not
 authorize arbitrary over-acceptance.
 
+Do not add an external scanner solely to reject a malformed token that the
+static grammar recovers as a valid prefix followed by another datum. Accept
+that token-boundary limit and record representative cases in grammar comments
+and corpus tests.
+
 ## Grammar ownership and shape
 
 ```text

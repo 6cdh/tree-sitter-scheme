@@ -1,7 +1,7 @@
 const specialObject = {
   // Published spelling from the Nil node.
   guile: seq("#", "nil"),
-  chez: seq("#!", token(choice("eof", "bwp", "base-rtd"))),
+  chez: seq("#!", token(choice("eof", "bwp"))),
   chicken: seq("#!", token(choice("eof", "bwp"))),
 };
 

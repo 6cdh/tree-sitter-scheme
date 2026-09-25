@@ -31,8 +31,6 @@ number.guile = choice(
   guile_number_base(16));
 number.chez = choice(
   number.r6rs,
-  // Chez mode keeps the R5RS `#` digit placeholders that R6RS removed.
-  number.r5rs,
   chez_nondecimal_number_base(2),
   chez_nondecimal_number_base(8),
   chez_nondecimal_number_base(16),
@@ -341,6 +339,28 @@ function r7rs_number_base(n) {
   return num;
 }
 
+// Body after a Chez radix/exactness prefix. `#b`/`#o`/`#x` floats and `#nr`
+// share this shape; only the digit class changes. strnum allows `|` plus
+// decimal digits after an integer or float. A ratio has no mantissa width:
+// `#x1/2|53` is invalid.
+function chez_number_body(digit) {
+  const sign = optional(/[+-]/);
+  const uinteger = repeat1(digit);
+  const exponent = optional(seq(/[eEsSfFdDlL]/, sign, uinteger));
+  const mantissaWidth = optional(seq("|", repeat1(/[0-9]/)));
+  const ureal = choice(
+    seq(uinteger, "/", uinteger),
+    seq(".", uinteger, exponent, mantissaWidth),
+    seq(uinteger, ".", repeat(digit), exponent, mantissaWidth),
+    seq(uinteger, exponent, mantissaWidth));
+  const real = seq(sign, ureal);
+
+  return choice(
+    real,
+    seq(real, "@", real),
+    seq(optional(real), /[+-]/, optional(ureal), /[iI]/));
+}
+
 // Chez extends the ordinary radix prefixes with fractional and exponent
 // notation. The digit class is still radix-specific, so a hexadecimal e is a
 // digit before it is considered as an exponent marker.
@@ -359,30 +379,13 @@ function chez_nondecimal_number_base(n) {
   const prefix = choice(
     seq(radix, exactness),
     seq(exactness, radix));
-  const sign = optional(/[+-]/);
-  const exponent = optional(seq(/[eEsSfFdDlL]/, sign, repeat1(digit)));
-  // strnum allows `|` plus decimal digits after an integer or float in any
-  // radix. A ratio has no mantissa width: `#x1/2|53` is invalid.
-  const mantissaWidth = optional(seq("|", repeat1(/[0-9]/)));
-  const uinteger = repeat1(digit);
-  const ureal = choice(
-    seq(uinteger, "/", uinteger),
-    seq(".", repeat1(digit), exponent, mantissaWidth),
-    seq(uinteger, ".", repeat(digit), exponent, mantissaWidth),
-    seq(uinteger, exponent, mantissaWidth));
-  const real = seq(sign, ureal);
 
-  return seq(prefix, choice(
-    real,
-    seq(real, "@", real),
-    seq(optional(real), /[+-]/, optional(ureal), /[iI]/)));
+  return seq(prefix, chez_number_body(digit));
 }
 
-// Digit validity for #nr depends on n and cannot be encoded by Tree-sitter's
-// regular lexer without listing 35 number towers. Chez performs that semantic
-// check. Keep the prefix valued 2 through 36, including leading zeros, and
-// consume the complete number-like token so `#16r1+1i` stays one node. A
-// letter that is a digit in that radix is not classified here as `i` or inf.
+// The token has number syntax, while Chez checks whether each digit belongs
+// to the selected radix. The parser still permits prefix splitting when a
+// token is malformed, as documented by the Chez corpus.
 function chez_arbitrary_radix_number() {
   const exactness = /#[iIeE]/;
   const radix = /#0*(?:[2-9]|[12][0-9]|3[0-6])[rR]/;
@@ -390,7 +393,7 @@ function chez_arbitrary_radix_number() {
     seq(radix, optional(exactness)),
     seq(optional(exactness), radix));
 
-  return seq(prefix, /[0-9A-Za-z+\-.\/@|#]+/);
+  return seq(prefix, chez_number_body(/[0-9A-Za-z]/));
 }
 
 module.exports = { number };
