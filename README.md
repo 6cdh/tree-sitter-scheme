@@ -62,6 +62,26 @@ This parser doesn't parse language constructs. Instead, it parses code as lists.
 
 If you want language constructs support, use custom queries (see [#5](https://github.com/6cdh/tree-sitter-scheme/issues/5)), also see [thchha/tree-sitter-scheme](https://gitlab.com/thchha/tree-sitter-scheme).
 
+To use a dialect parser, clone this repository, generate and build that
+dialect with the tree-sitter CLI, then copy the compiled library to the
+location your editor requires:
+
+```shell
+npm install
+cd dialects/r5rs
+npx tree-sitter generate
+npx tree-sitter build
+```
+
+Replace `r5rs` with `r6rs`, `r7rs`, `chez`, `guile`, or `chicken`.
+Generate from the dialect directory; generating from the repository
+root overwrites default `src/`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+If you want to make your own parser, look at the reusable fragments in
+[`grammar/`](grammar/) and the notes in
+[docs/design.md](docs/design.md) and
+[docs/dialect-workflow.md](docs/dialect-workflow.md).
+
 ## Query
 
 The queries here are too simple and not intended to be useful in an editor.
