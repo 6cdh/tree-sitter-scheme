@@ -16,10 +16,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      # Lockfile CLI. setup-action/cli@v1 fails on 0.26.13: init-config
-      # writes the config path to stderr, so the action's cut of stdout is empty.
-      - name: Install npm dependencies
-        run: npm ci
+      # Lockfile CLI only. Full npm ci runs this package's node-gyp-build,
+      # which fails on windows-latest (VS 2026 vs Node 22's node-gyp 11).
+      # setup-action/cli@v1 also fails on 0.26.13: init-config writes the
+      # config path to stderr.
+      - name: Install tree-sitter CLI
+        run: |
+          npm ci --ignore-scripts
+          npm rebuild tree-sitter-cli
       - name: Run tests
         run: npx tree-sitter test
       - name: Test R5RS dialect
@@ -59,8 +63,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install npm dependencies
-        run: npm ci
+      - name: Install tree-sitter CLI
+        run: |
+          npm ci --ignore-scripts
+          npm rebuild tree-sitter-cli
       - name: Download sicp code
         run: |
           mkdir -p sicp && cd sicp
