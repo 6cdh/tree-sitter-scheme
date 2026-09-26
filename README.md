@@ -6,13 +6,13 @@ Scheme parser for tree-sitter.
 
 ## Recent News
 
-* Maintained parsers for R5RS, R6RS, R7RS-small, Chez Scheme, Guile, and
+* 2026-09-26: Maintained parsers for R5RS, R6RS, R7RS-small, Chez Scheme, Guile, and
   CHICKEN Scheme live under `dialects/`. The default `scheme` parser accepts
   all three standards plus some extensions.
   Reusable reader fragments live under `grammar/`. See
   [docs/design.md](docs/design.md) to add, change, or make yourself a dialect.
 
-* The reusable-fragments design refactor is a breaking change. The default
+* 2026-09-26: The reusable-fragments design refactor is a breaking change. The default
   parser is not compatible with the previous one. See
   [nodes.md](./nodes.md).
 
