@@ -12,12 +12,16 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up tree sitter
-        uses: tree-sitter/setup-action/cli@v1
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          tree-sitter-ref: v0.26.13
+          node-version: 22
+      # Lockfile CLI. setup-action/cli@v1 fails on 0.26.13: init-config
+      # writes the config path to stderr, so the action's cut of stdout is empty.
+      - name: Install npm dependencies
+        run: npm ci
       - name: Run tests
-        run: tree-sitter test
+        run: npx tree-sitter test
       - name: Test R5RS dialect
         run: node scripts/run-dialect.js r5rs test
       - name: Test R6RS dialect
@@ -32,7 +36,7 @@ jobs:
         run: node scripts/run-dialect.js chicken test
       - name: Query CHICKEN highlights
         working-directory: dialects/chicken
-        run: tree-sitter query -q queries/highlights.scm test/corpus/chicken.scm
+        run: npx tree-sitter query -q queries/highlights.scm test/corpus/chicken.scm
 
   chicken-incremental:
     runs-on: ubuntu-latest
@@ -51,13 +55,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up tree sitter
-        uses: tree-sitter/setup-action/cli@v1
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          tree-sitter-ref: v0.26.13
+          node-version: 22
+      - name: Install npm dependencies
+        run: npm ci
       - name: Download sicp code
         run: |
           mkdir -p sicp && cd sicp
           curl https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/code/allcode.tar.gz -O
           tar xvf allcode.tar.gz
-      - run: tree-sitter parse sicp/*.scm -qt
+      - run: npx tree-sitter parse sicp/*.scm -qt
