@@ -6,43 +6,57 @@ Scheme parser for tree-sitter.
 
 ## Recent News
 
-* With R7RS support, a single `|` can no longer appear in the middle of an identifier.
-* The node `directive` no longer contains the sub node `symbol`. It is now a single node.
-* Some extensions were added, see below.
+* Maintained parsers for R5RS, R6RS, R7RS-small, Chez Scheme, Guile, and
+  CHICKEN Scheme live under `dialects/`. The default `scheme` parser accepts
+  all three standards plus some extensions.
+  Reusable reader fragments live under `grammar/`. See
+  [docs/design.md](docs/design.md) to add, change, or make yourself a dialect.
+
+* The reusable-fragments design refactor is a breaking change. The default
+  parser is not compatible with the previous one. See
+  [nodes.md](./nodes.md).
+
+  * `syntax` is now `syntax_quote`
+  * `#;` is `sexp_comment`, not `comment`
+  * New nodes: `dot`, `datum_label`, `datum_label_id`, `datum_reference`
+  * `list` is `()` or `[]` only; `.` is a child `dot`
+  * `byte_vector` also matches `#u8(...)`
+  * Dropped extensions: `{}` lists, symbols that start with a digit,
+    `\` + any character in strings, extra character names (`#\bel`,
+    `#\ls`, `#\nel`, `#\rubout`, `#\vt`)
 
 ## Status
 
-~~tree-sitter-scheme should work on a superset of Scheme.~~
+The default `scheme` parser accepts the union of R5RS, R6RS, and R7RS-small
+reader syntax, plus Steel Scheme `#\u` characters and `#:` keywords. When
+the standards disagree on a token boundary, it uses the R6RS reading.
 
-Different implementations might have conflicting grammars. I am not sure if I should support
-them. If you need some implementation-specific features, please open an issue, then I will consider supporting it.
+Separate parsers live under `dialects/`. Each is its own Tree-sitter
+language named `scheme`, not a drop-in for the default parser:
 
-current status:
+- `dialects/r5rs/` — R5RS
+- `dialects/r6rs/` — R6RS
+- `dialects/r7rs/` — R7RS-small
+- `dialects/chez/` — Chez Scheme 10.4
+- `dialects/guile/` — GNU Guile 3.0.11
+- `dialects/chicken/` — CHICKEN Scheme 6.0.0
 
-* [x] R5RS
-* [x] R6RS
-* [x] R7RS
-* [ ] Extensions
-  * [x] `{}` as replacement for `()` or `[]`
-  * [x] extend symbols which can start with digits, period, ... etc as long as it's not a number
-  * [x] keyword `#:symbol`
-  * [x] escape sequence in string `\` + any character
-  * [x] characters `#\bel`, `#\ls`, `#\nel`, `#\rubout`, `#\vt`
-  * [x] character `#\u[A-Fa-f0-9]+`
-
-Please open an issue to let me know it's really used if you want to add new extensions.
+See each dialect `grammar.js` for coverage. Chez, Guile, and CHICKEN also
+have notes in `docs/`. Generate a dialect from its own directory; see
+[CONTRIBUTING.md](CONTRIBUTING.md). Feel free to open issues for new
+syntax.
 
 ## Implementation
 
 * [ ] Support for implementation
-  * [ ] Chez Scheme ([#1](https://github.com/6cdh/tree-sitter-scheme/issues/1))
-  * [ ] Chicken Scheme ([#3](https://github.com/6cdh/tree-sitter-scheme/issues/3))
-  * [ ] Guile Scheme ([#7](https://github.com/6cdh/tree-sitter-scheme/issues/7))
+  * [x] Chez Scheme ([#1](https://github.com/6cdh/tree-sitter-scheme/issues/1))
+  * [x] Chicken Scheme ([#3](https://github.com/6cdh/tree-sitter-scheme/issues/3))
+  * [x] Guile Scheme ([#7](https://github.com/6cdh/tree-sitter-scheme/issues/7))
   * [ ] Steel Scheme ([#17](https://github.com/6cdh/tree-sitter-scheme/issues/17))
 
 ## Usage
 
-See [nodes.md](./nodes.md) for all visible nodes.
+See [nodes.md](./nodes.md) for the default parser's visible nodes.
 
 This parser doesn't parse language constructs. Instead, it parses code as lists.
 
@@ -51,16 +65,19 @@ If you want language constructs support, use custom queries (see [#5](https://gi
 ## Query
 
 The queries here are too simple and not intended to be useful in an editor.
-Please open an issue if you have suggestions.
+You need to write by yourself, according to the grammar files.
 
 ## Reference
 
 Scheme
 
-* [R5RS](https://schemers.org/Documents/Standards/R5RS/)
+* [R5RS](https://schemers.org/Documents/Standards/R5RS/HTML/)
 * [R6RS](http://www.r6rs.org/)
-* [R7RS](https://small.r7rs.org/)
+* [R7RS-small](https://small.r7rs.org/)
 * [The Scheme Programming Language](https://www.scheme.com/tspl4/)
+* [Chez Scheme User's Guide](https://cisco.github.io/ChezScheme/csug/)
+* [GNU Guile Reference Manual](https://www.gnu.org/software/guile/manual/)
+* [CHICKEN Scheme User's Manual](https://wiki.call-cc.org/man/6/The%20User%27s%20Manual)
 
 Tree-sitter
 
@@ -69,4 +86,3 @@ Tree-sitter
 * [tree-sitter-clojure](https://github.com/sogaiu/tree-sitter-clojure)
 * [tree-sitter-commonlisp](https://github.com/theHamsta/tree-sitter-commonlisp)
 * [tree-sitter-fennel](https://github.com/TravonteD/tree-sitter-fennel)
-

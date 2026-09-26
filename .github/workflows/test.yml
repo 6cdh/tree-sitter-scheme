@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -11,35 +12,64 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
-      - name: Set up tree sitter
-        uses: tree-sitter/setup-action/cli@v1
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          tree-sitter-ref: v0.24.7
+          node-version: 22
+      # Lockfile CLI only. Full npm ci runs this package's node-gyp-build,
+      # which fails on windows-latest (VS 2026 vs Node 22's node-gyp 11).
+      # setup-action/cli@v1 also fails on 0.26.13: init-config writes the
+      # config path to stderr.
+      - name: Install tree-sitter CLI
+        run: |
+          npm ci --ignore-scripts
+          npm rebuild tree-sitter-cli
       - name: Run tests
-        run: tree-sitter test
+        run: npx tree-sitter test
+      - name: Test R5RS dialect
+        run: node scripts/run-dialect.js r5rs test
+      - name: Test R6RS dialect
+        run: node scripts/run-dialect.js r6rs test
+      - name: Test R7RS dialect
+        run: node scripts/run-dialect.js r7rs test
+      - name: Test Chez corpus
+        run: node scripts/run-dialect.js chez test
+      - name: Test Guile corpus
+        run: node scripts/run-dialect.js guile test
+      - name: Test CHICKEN dialect
+        run: node scripts/run-dialect.js chicken test
+      - name: Query CHICKEN highlights
+        working-directory: dialects/chicken
+        run: npx tree-sitter query -q queries/highlights.scm test/corpus/chicken.scm
 
-  # chez:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 14
-  #     - run: npm install
-  #     - run: git clone --depth 1 https://github.com/cisco/ChezScheme.git
-  #     - run: npx tree-sitter parse $(find ./ChezScheme -type f -name "*.scm" -o -name "*.ss" -not -exec grep -q -e '<<' -e '(#' -e '#{' -e '#!eof' -e '(\\' {} \; -print) -qt
+  chicken-incremental:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install npm dependencies
+        run: npm ci
+      - name: Test CHICKEN incremental parsing
+        run: npm run test:chicken:incremental
 
   sicp:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up tree sitter
-        uses: tree-sitter/setup-action/cli@v1
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          tree-sitter-ref: v0.24.7
+          node-version: 22
+      - name: Install tree-sitter CLI
+        run: |
+          npm ci --ignore-scripts
+          npm rebuild tree-sitter-cli
       - name: Download sicp code
         run: |
           mkdir -p sicp && cd sicp
           curl https://mitp-content-server.mit.edu/books/content/sectbyfn/books_pres_0/6515/sicp.zip/code/allcode.tar.gz -O
           tar xvf allcode.tar.gz
-      - run: tree-sitter parse sicp/*.scm -qt
+      - run: npx tree-sitter parse sicp/*.scm -qt

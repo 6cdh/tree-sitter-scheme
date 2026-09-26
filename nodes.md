@@ -1,30 +1,34 @@
 ## Nodes
 
-This page contains all visible nodes in yaml format.
+This page lists the default parser's visible nodes in yaml format.
 
 ```yaml
 - comment
-- block_comment # for example, #| something |#
-- directive # for example, #!r6rs
+- block_comment # nested `#| ... |#` comment
+- sexp_comment # `#;` followed by one datum
+- directive # `#!r6rs`, `#!fold-case`, or `#!no-fold-case`
 - boolean
 - character
 - string
-- escape_sequence # escape sequence in string, for example, \n in "abc\n"
+- escape_sequence # `\"` or `\\` in a string
 - number
-- symbol # identifier
-- keyword # #:identifier
+- symbol # R5RS, R6RS, or R7RS identifier
+- keyword # `#:` keyword
+- datum_label # `#0=` followed by one datum
+- datum_label_id # decimal digits in `#0=` and `#0#`
+- datum_reference # `#0#`
 
-- list # things surrounded by () or [] or {}
+- list # `()` or `[]` list; may contain `dot`
+- dot # `.` inside a list
 - quote # '
 - quasiquote # `
-- syntax # #'
-- quasisyntax #`
 - unquote # ,
 - unquote_splicing # ,@
+- syntax_quote # #'
+- quasisyntax # #`
 - unsyntax # #,
 - unsyntax_splicing # #,@
 
 - vector
-- byte_vector
+- byte_vector # `#vu8(...)` or `#u8(...)`
 ```
-

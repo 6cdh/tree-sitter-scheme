@@ -1,9 +1,13 @@
-["(" ")" "[" "]" "{" "}"] @punctuation.bracket
+["(" ")" "[" "]"] @punctuation.bracket
+(dot) @punctuation.delimiter
 
 (number) @number
+(datum_label_id) @number
 (character) @constant.builtin
 (boolean) @constant.builtin
+(keyword) @constant
 (symbol) @variable
+(datum_reference) @variable
 
 (string) @string
 
@@ -12,14 +16,6 @@
 (list
   .
   (symbol) @function)
-
-(list
-  .
-  "["
-  .
-  (symbol)+ @variable
-  .
-  "]")
 
 ((symbol) @operator
  (#match? @operator "^(\\+|-|\\*|/|=|>|<|>=|<=)$"))
@@ -58,27 +54,21 @@
 (quote
   (_ (_ (_ _* @constant))))
 
-;; sexp comment ;;
+(syntax_quote
+  _ @constant)
 
-;; hardcoded highlight four levels of nested structure
+(syntax_quote
+  (_ _* @constant))
 
-; #;atom
-(comment
-  _ @comment)
+(syntax_quote
+  (_ (_ _* @constant)))
 
-; #;(list)
-(comment
-  (_ _* @comment))
+(syntax_quote
+  (_ (_ (_ _* @constant))))
 
-; #;(list (list))
-(comment
-  (_ (_ _* @comment)))
-
-; #;(list (list (list)))
-(comment
-  (_ (_ (_ _ @comment))))
-
-[(comment)
- (block_comment)
- (directive)] @comment
-
+[
+  (comment)
+  (block_comment)
+  (sexp_comment)
+  (directive)
+] @comment

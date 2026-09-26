@@ -3,26 +3,27 @@ on:
   push:
     branches:
       - main
+  pull_request:
 jobs:
   wasm:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up tree sitter
-        uses: tree-sitter/setup-action/cli@v1
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          tree-sitter-ref: v0.24.7
+          node-version: 22
+      - name: Install tree-sitter CLI
+        run: |
+          npm ci --ignore-scripts
+          npm rebuild tree-sitter-cli
       - name: wasm build
-        run: tree-sitter build -w -o tree-sitter-scheme.wasm
+        run: npx tree-sitter build -w -o tree-sitter-scheme.wasm
   rust:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
-      - name: Set up tree sitter
-        uses: tree-sitter/setup-action/cli@v1
-        with:
-          tree-sitter-ref: v0.24.7
       - name: rust build
         run: cargo test --all-features
