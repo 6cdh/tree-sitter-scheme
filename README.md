@@ -28,8 +28,16 @@ Scheme parser for tree-sitter.
 ## Status
 
 The default `scheme` parser accepts the union of R5RS, R6RS, and R7RS-small
-reader syntax, plus Steel Scheme `#\u` characters and `#:` keywords. When
-the standards disagree on a token boundary, it uses the R6RS reading.
+reader syntax. When the standards disagree on a token boundary, it uses the
+R6RS reading.
+
+Extensions:
+
+- Steel Scheme `#\u` hexadecimal characters
+- `#:` keywords
+
+More syntax is welcome if it is widely used. Please open an issue.
+If you want dialect specific syntax very much, prefer a dialect parser.
 
 Separate parsers live under `dialects/`. Each is its own Tree-sitter
 language named `scheme`, not a drop-in for the default parser:
@@ -43,8 +51,7 @@ language named `scheme`, not a drop-in for the default parser:
 
 See each dialect `grammar.js` for coverage. Chez, Guile, and CHICKEN also
 have notes in `docs/`. Generate a dialect from its own directory; see
-[CONTRIBUTING.md](CONTRIBUTING.md). Feel free to open issues for new
-syntax.
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Implementation
 
