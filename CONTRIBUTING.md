@@ -16,6 +16,10 @@ npx tree-sitter generate
 npx tree-sitter test
 ```
 
+After changing token composition, rebuild the corpus cache with
+`npx tree-sitter test -r`. The CLI can otherwise report stale expected
+trees.
+
 ## Dialect parsers
 
 Each directory under `dialects/` is a separate Tree-sitter project.

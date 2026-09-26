@@ -19,41 +19,20 @@ jobs:
       - name: Run tests
         run: tree-sitter test
       - name: Test R5RS dialect
-        working-directory: dialects/r5rs
-        run: |
-          tree-sitter generate
-          tree-sitter test
+        run: node scripts/run-dialect.js r5rs test
       - name: Test R6RS dialect
-        working-directory: dialects/r6rs
-        run: |
-          node ../../scripts/write-r6rs-line-ending-corpus.js
-          tree-sitter generate
-          tree-sitter test
+        run: node scripts/run-dialect.js r6rs test
       - name: Test R7RS dialect
-        working-directory: dialects/r7rs
-        run: |
-          node ../../scripts/write-r7rs-line-ending-corpus.js
-          tree-sitter generate
-          tree-sitter test
+        run: node scripts/run-dialect.js r7rs test
       - name: Test Chez corpus
-        working-directory: dialects/chez
-        run: |
-          node ../../scripts/write-chez-line-ending-corpus.js
-          tree-sitter generate
-          tree-sitter test
+        run: node scripts/run-dialect.js chez test
       - name: Test Guile corpus
-        working-directory: dialects/guile
-        run: |
-          node ../../scripts/write-guile-whitespace-corpus.js
-          tree-sitter generate
-          tree-sitter test
+        run: node scripts/run-dialect.js guile test
       - name: Test CHICKEN dialect
+        run: node scripts/run-dialect.js chicken test
+      - name: Query CHICKEN highlights
         working-directory: dialects/chicken
-        run: |
-          node ../../scripts/write-chicken-scanner-corpus.js
-          tree-sitter generate
-          tree-sitter test
-          tree-sitter query -q queries/highlights.scm test/corpus/chicken.scm
+        run: tree-sitter query -q queries/highlights.scm test/corpus/chicken.scm
 
   chicken-incremental:
     runs-on: ubuntu-latest

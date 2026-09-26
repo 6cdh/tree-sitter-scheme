@@ -148,6 +148,41 @@ R5RS number tower
   (number))
 
 ===
+R6RS square lists are not R5RS
+===
+
+[a]
+
+---
+(program
+  (ERROR))
+
+===
+R6RS syntax abbreviation is not R5RS
+===
+
+#'a
+
+---
+(program
+  (boolean
+    (MISSING "boolean_token1"))
+  (quote
+    (symbol)))
+
+===
+R6RS block comments are not R5RS
+===
+
+#| comment |#
+
+---
+(program
+  (boolean
+    (ERROR))
+  (ERROR))
+
+===
 nondecimal radix requires digits
 ===
 

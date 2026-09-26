@@ -1,10 +1,9 @@
 "use strict";
 
-// Compile against the runtime bundled with the installed Node dependency.
-// The CLI can pass some column-dependent reuse cases that fail with that
-// runtime.
+// Compile and run incremental reuse checks against the Node-bundled tree-sitter runtime.
 const {spawnSync} = require("child_process");
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 
 const root = path.join(__dirname, "..");
@@ -12,9 +11,7 @@ const runtime = path.join(
   path.dirname(require.resolve("tree-sitter/package.json")),
   "vendor", "tree-sitter", "lib",
 );
-const scratch = path.join(root, ".agent-scratch");
-fs.mkdirSync(scratch, {recursive: true});
-const work = fs.mkdtempSync(path.join(scratch, "chicken-incremental-"));
+const work = fs.mkdtempSync(path.join(os.tmpdir(), "chicken-incremental-"));
 
 function run(command, args) {
   const result = spawnSync(command, args, {cwd: root, stdio: "inherit"});

@@ -54,6 +54,18 @@
 (quote
   (_ (_ (_ _* @constant))))
 
+(syntax_quote
+  _ @constant)
+
+(syntax_quote
+  (_ _* @constant))
+
+(syntax_quote
+  (_ (_ _* @constant)))
+
+(syntax_quote
+  (_ (_ (_ _* @constant))))
+
 [
   (comment)
   (block_comment)

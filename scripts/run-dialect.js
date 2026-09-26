@@ -21,7 +21,13 @@ if (!fs.existsSync(path.join(dir, "grammar.js"))) {
   process.exit(2);
 }
 
-const bin = path.join(root, "node_modules", ".bin", "tree-sitter");
+const localBin = path.join(
+  root,
+  "node_modules",
+  ".bin",
+  process.platform === "win32" ? "tree-sitter.cmd" : "tree-sitter",
+);
+const bin = fs.existsSync(localBin) ? localBin : "tree-sitter";
 
 function run(args) {
   const result = spawnSync(bin, args, {cwd: dir, stdio: "inherit"});
@@ -31,20 +37,16 @@ function run(args) {
   }
 }
 
-if (dialect === "r6rs") {
-  require("./write-r6rs-line-ending-corpus.js")();
-}
-if (dialect === "chez") {
-  require("./write-chez-line-ending-corpus.js")();
-}
-if (dialect === "r7rs") {
-  require("./write-r7rs-line-ending-corpus.js")();
-}
-if (dialect === "guile") {
-  require("./write-guile-whitespace-corpus.js")();
-}
-if (dialect === "chicken") {
-  require("./write-chicken-scanner-corpus.js")();
+const corpusByDialect = {
+  r6rs: "./write-r6rs-line-ending-corpus.js",
+  chez: "./write-chez-line-ending-corpus.js",
+  r7rs: "./write-r7rs-line-ending-corpus.js",
+  guile: "./write-guile-whitespace-corpus.js",
+  chicken: "./write-chicken-scanner-corpus.js",
+};
+const corpusScript = corpusByDialect[dialect];
+if (corpusScript) {
+  require(corpusScript)();
 }
 
 // Always generate in the dialect directory. The CLI writes src/ in cwd;
