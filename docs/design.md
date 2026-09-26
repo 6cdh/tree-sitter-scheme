@@ -7,11 +7,15 @@ This contract covers parsers, shared fragments, and syntax trees. See the
 
 ## Syntax authority and parser coverage
 
-Collect documented or published reader syntax, write a formal dialect
-specification, then implement it. Published prose and formal productions
-have equal authority. Specifications describe the dialect independently
-of this parser. Grammar comments and tests own coverage, tree shape, and
-parser limits.
+Collect documented or published reader syntax, then implement it.
+Published prose and formal productions have equal authority.
+Specifications describe the dialect independently of this parser.
+Grammar comments and tests own coverage, tree shape, and parser limits.
+
+The R5RS, R6RS, and R7RS-small parsers cite the published reports linked
+below. Do not restate those reports in this repository. Do not keep local
+PDF or text copies of them. Implementation dialects use a reconstructed
+note as specified in Dialect syntax document structure.
 
 References: [Guile 3.0.11](guile-scheme-syntax.md),
 [Chez 10.4.0](chez-scheme-syntax.md), [CHICKEN 6.0.0](chicken-scheme-syntax.md),
@@ -19,6 +23,10 @@ References: [Guile 3.0.11](guile-scheme-syntax.md),
 [R6RS](http://www.r6rs.org/), and [R7RS-small](https://small.r7rs.org/).
 
 ### Dialect syntax document structure
+
+This structure applies to implementation dialects. Do not write
+`docs/r5rs-scheme-syntax.md`, `docs/r6rs-scheme-syntax.md`, or
+`docs/r7rs-scheme-syntax.md`.
 
 Write `docs/<dialect>-scheme-syntax.md` with:
 

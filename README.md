@@ -8,90 +8,43 @@ Scheme parser for tree-sitter.
 
 * Maintained parsers for R5RS, R6RS, R7RS-small, Chez Scheme, Guile, and
   CHICKEN Scheme live under `dialects/`. The default `scheme` parser accepts
-  all three standards. Reusable reader fragments live under `grammar/`. See
-  [docs/design.md](docs/design.md) to add or change a dialect.
+  all three standards plus some extensions.
+  Reusable reader fragments live under `grammar/`. See
+  [docs/design.md](docs/design.md) to add, change, or make yourself a dialect.
+
+* The reusable-fragments design refactor is a breaking change. The default
+  parser is not compatible with the previous one. See
+  [nodes.md](./nodes.md).
+
+  * `syntax` is now `syntax_quote`
+  * `#;` is `sexp_comment`, not `comment`
+  * New nodes: `dot`, `datum_label`, `datum_label_id`, `datum_reference`
+  * `list` is `()` or `[]` only; `.` is a child `dot`
+  * `byte_vector` also matches `#u8(...)`
+  * Dropped extensions: `{}` lists, symbols that start with a digit,
+    `\` + any character in strings, extra character names (`#\bel`,
+    `#\ls`, `#\nel`, `#\rubout`, `#\vt`)
 
 ## Status
 
-The maintained R5RS parser is `dialects/r5rs/` (language name `scheme`).
-It selects the R5RS token forms and external representations from sections
-7.1.1 and 7.1.2.
+The default `scheme` parser accepts the union of R5RS, R6RS, and R7RS-small
+reader syntax, plus Steel Scheme `#\u` characters and `#:` keywords. When
+the standards disagree on a token boundary, it uses the R6RS reading.
 
-The default `scheme` parser accepts the union of R5RS, R6RS, and R7RS reader
-syntax. Where the standards assign different token boundaries to the same
-text, the default parser chooses the longest complete token. For example,
-`#\XFF` is one R7RS hexadecimal character, while `#\nul` remains one R6RS
-named character. Line comments use R6RS line endings, including NEL, U+2028,
-and U+2029. Use a standard-specific parser when those parse-tree differences
-matter.
+Separate parsers live under `dialects/`. Each is its own Tree-sitter
+language named `scheme`, not a drop-in for the default parser:
 
-The R6RS parser is `dialects/r6rs/` (language name `scheme`). It selects
-the lexical syntax and datum syntax from chapter 4 of R6RS
-(http://www.r6rs.org/).
+- `dialects/r5rs/` — R5RS
+- `dialects/r6rs/` — R6RS
+- `dialects/r7rs/` — R7RS-small
+- `dialects/chez/` — Chez Scheme 10.4
+- `dialects/guile/` — GNU Guile 3.0.11
+- `dialects/chicken/` — CHICKEN Scheme 6.0.0
 
-The R7RS-small parser is `dialects/r7rs/` (language name `scheme`). It selects
-the lexical syntax and external representations from sections 7.1.1 and 7.1.2
-(https://small.r7rs.org/). The parser recognizes `#!fold-case`
-and `#!no-fold-case`, but a static syntax tree does not normalize later
-identifiers according to that reader state.
-
-The Chez Scheme parser is `dialects/chez/` (language name `scheme`). It accepts
-R6RS reader syntax plus the Chez Scheme 10.4 external representations extracted
-in `docs/chez-scheme-syntax.md`. It represents reader directives but accepts a
-fixed R6RS/Chez union; a static syntax tree cannot apply state changes from
-`#!r6rs`, `#!chezscheme`, or the case-folding directives.
-
-The Guile parser is `dialects/guile/` (language name `scheme`). It
-accepts the default GNU Guile 3.0.11 reader syntax in
-`docs/guile-scheme-syntax.md`, including symbols and keywords, arrays
-and uniform vectors, bitvectors, `#nil`, default string escapes, and
-`#! ... !#` script comments. It recognizes reader directives but does
-not apply their state changes, run `read-hash-extend` callbacks, or
-match unpublished `read` quirks.
-
-The CHICKEN parser is `dialects/chicken/` (language name `scheme`). It accepts
-the CHICKEN Scheme 6.0.0 reader syntax documented in
-`docs/chicken-scheme-syntax.md`, including keywords, alternative list brackets,
-number vectors, here-documents, and hash dispatch forms. It parses the default
-reader settings and does not apply parameter changes or run application-defined
-reader callbacks. Its here-document scanner matches closing tags exactly.
-`#<<` produces `here_string`; `#<#` produces `interpolated_here_string`, with
-interpolations and `##` as children.
-
-The frozen R5RS parser is a separate Tree-sitter project in `dialects/r5rs/`.
-It is not a drop-in for the default parser or its queries. Build it in that
-directory:
-
-```sh
-cd dialects/r5rs
-npx tree-sitter generate
-npx tree-sitter test
-npx tree-sitter build
-```
-
-Or from the repository root: `npm run generate:r5rs`, `npm run test:r5rs`,
-`npm run build:r5rs`. To parse a file with that dialect (generate, build,
-then parse):
-
-```sh
-npm run parse:r5rs -- path/to/file.scm
-```
-
-Use the matching `generate:r6rs`, `test:r6rs`, `build:r6rs`, and
-`parse:r6rs` scripts for the R6RS parser. Use `generate:r7rs`, `test:r7rs`,
-`build:r7rs`, and `parse:r7rs` for the R7RS-small parser. Use `generate:chez`,
-`test:chez`, `build:chez`, and `parse:chez` for the Chez Scheme parser. Use
-`generate:guile`, `test:guile`, `build:guile`, and `parse:guile` for Guile.
-Use `generate:chicken`, `test:chicken`, `build:chicken`, and `parse:chicken`
-for CHICKEN Scheme.
-
-Do not pass a dialect `grammar.js` to `npx tree-sitter generate` from the
-repository root. CLI 0.24 would overwrite the default `src/` files.
-
-Identifiers follow R5RS, R6RS, and R7RS lexical syntax, so they cannot
-start with a digit. The parser still does not require a delimiter after a
-number. `123abc` is a `number` followed by a `symbol`, not one identifier
-and not an error.
+See each dialect `grammar.js` for coverage. Chez, Guile, and CHICKEN also
+have notes in `docs/`. Generate a dialect from its own directory; see
+[CONTRIBUTING.md](CONTRIBUTING.md). Feel free to open issues for new
+syntax.
 
 ## Implementation
 
@@ -103,7 +56,7 @@ and not an error.
 
 ## Usage
 
-See [nodes.md](./nodes.md) for all visible nodes.
+See [nodes.md](./nodes.md) for the default parser's visible nodes.
 
 This parser doesn't parse language constructs. Instead, it parses code as lists.
 
@@ -112,15 +65,15 @@ If you want language constructs support, use custom queries (see [#5](https://gi
 ## Query
 
 The queries here are too simple and not intended to be useful in an editor.
-Please open an issue if you have suggestions.
+You need to write by yourself, according to the grammar files.
 
 ## Reference
 
 Scheme
 
-* [R5RS](https://schemers.org/Documents/Standards/R5RS/)
+* [R5RS](https://schemers.org/Documents/Standards/R5RS/HTML/)
 * [R6RS](http://www.r6rs.org/)
-* [R7RS](https://small.r7rs.org/)
+* [R7RS-small](https://small.r7rs.org/)
 * [The Scheme Programming Language](https://www.scheme.com/tspl4/)
 * [Chez Scheme User's Guide](https://cisco.github.io/ChezScheme/csug/)
 * [GNU Guile Reference Manual](https://www.gnu.org/software/guile/manual/)

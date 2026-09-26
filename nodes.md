@@ -1,6 +1,6 @@
 ## Nodes
 
-This page contains all visible nodes in yaml format.
+This page lists the default parser's visible nodes in yaml format.
 
 ```yaml
 - comment
@@ -13,6 +13,7 @@ This page contains all visible nodes in yaml format.
 - escape_sequence # `\"` or `\\` in a string
 - number
 - symbol # R5RS, R6RS, or R7RS identifier
+- keyword # `#:` keyword
 - datum_label # `#0=` followed by one datum
 - datum_label_id # decimal digits in `#0=` and `#0#`
 - datum_reference # `#0#`

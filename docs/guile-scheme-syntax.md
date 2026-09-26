@@ -48,7 +48,7 @@ mutually exclusive. See [Optional reader syntax](#optional-reader-syntax).
 
 ### Sources
 
-- Inherited formal core: R5RS section 7.1 in `docs/r5rs.txt`
+- Inherited formal core: [R5RS][r5rs] section 7.1
 - [Scheme Read][scheme-read]: read options and per-port directives
 - Reader pages: [expression syntax][expression-syntax],
   [comments][comments], [block comments][block-comments],
@@ -465,6 +465,7 @@ continuation.
 fixed formal syntax. An unknown `#` plus a character is an error when
 no callback is installed.
 
+[r5rs]: https://schemers.org/Documents/Standards/R5RS/HTML/
 [scheme-syntax]: https://www.gnu.org/software/guile/manual/html_node/Scheme-Syntax.html
 [syntax-summary]: https://www.gnu.org/software/guile/manual/html_node/Syntax-Summary.html
 [expression-syntax]: https://www.gnu.org/software/guile/manual/html_node/Expression-Syntax.html

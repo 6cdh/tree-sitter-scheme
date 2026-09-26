@@ -47,7 +47,7 @@ syntax.
 
 ### Sources
 
-- Inherited formal core: R6RS chapter 4 in `docs/r6rs.txt`
+- Inherited formal core: [R6RS][r6rs] chapter 4
 - [CSUG §1.1][csug-intro]: Chez lexical extensions and mode controls
 - [CSUG Chapter 7][csug-objects]: characters (§7.3), strings (§7.4),
   vectors (§7.5), fxvectors (§7.6), flvectors (§7.7), bytevectors
@@ -529,6 +529,7 @@ directive overrides `(case-sensitive)` until the other directive.
 **Change:** later symbol and character names are folded as if by
 `string-foldcase`. It changes values, not token productions.
 
+[r6rs]: http://www.r6rs.org/
 [r6rs-lexical]: https://r6rs.org/final/html/r6rs/r6rs-Z-H-7.html
 [csug-intro]: https://cisco.github.io/ChezScheme/csug/intro.html
 [csug-objects]: https://cisco.github.io/ChezScheme/csug/objects.html

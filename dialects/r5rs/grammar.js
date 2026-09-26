@@ -5,7 +5,8 @@ const {
 
 // Frozen R5RS reader: section 7.1.1 tokens and 7.1.2 data, not 7.1.3
 // expressions. Do not add R6RS, R7RS, or other extensions here. The default
-// root grammar.js may grow. Formal syntax: docs/r5rs.pdf.
+// root grammar.js may grow. Formal syntax: R5RS section 7.1
+// (https://schemers.org/Documents/Standards/R5RS/HTML/).
 
 module.exports = grammar({
   name: "scheme",

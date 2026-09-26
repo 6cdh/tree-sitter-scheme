@@ -1,9 +1,11 @@
 # Dialect parser workflow
 
-Collect published syntax, formalize it, then implement it. For existing
-parsers, reuse established sources and productions. Fill specification
-gaps before changing the affected grammar. [design.md](design.md) owns
-the contracts.
+Collect published syntax, then implement it. Implementation dialects
+formalize published prose into a reconstructed note. The R5RS, R6RS,
+and R7RS-small parsers cite the published report. For existing parsers,
+reuse established sources and productions. Fill specification gaps
+before changing the affected grammar. [design.md](design.md) owns the
+contracts.
 
 ## 1. Collect sources
 
@@ -22,7 +24,12 @@ Remaining source gaps are explicit.
 
 ## 2. Write the specification
 
-Create or update `docs/<dialect>-scheme-syntax.md` using the
+For R5RS, R6RS, and R7RS-small, cite the published report linked from
+[design.md](design.md). Do not reconstruct it as
+`docs/<dialect>-scheme-syntax.md`.
+
+For an implementation dialect, create or update
+`docs/<dialect>-scheme-syntax.md` using the
 [required structure](design.md#dialect-syntax-document-structure).
 Formalize published prose, cite each production, and reference unchanged
 inherited rules. Specify boundaries and constraints. Separate default
@@ -34,9 +41,9 @@ already marked unclear or ambiguous in the specification. Follow the
 design's ambiguity procedure; missing documentation alone is
 insufficient. Keep parser decisions out of the syntax specification.
 
-Done: collected rules are formalized or inherited. Unresolved questions
-are explicit. Blocking questions are raised with the user, and affected
-rules are deferred.
+Done: collected rules are cited, formalized, or inherited. Unresolved
+questions are explicit. Blocking questions are raised with the user,
+and affected rules are deferred.
 
 ## 3. Implement the specification
 
@@ -63,8 +70,10 @@ Adapt upstream tests only for specified reader syntax. Keep revision,
 attribution, and license notices. Translate value assertions into tree
 expectations where appropriate.
 
-Return to sources and update the specification before implementing any
-newly identified syntax requirement.
+Return to sources before implementing any newly identified syntax
+requirement. For an implementation dialect, update the reconstructed
+note. For R5RS, R6RS, and R7RS-small, the published report remains the
+specification.
 
 Done: included productions map to grammar rules and meaningful tests.
 Exclusions and parser limits are explicit.

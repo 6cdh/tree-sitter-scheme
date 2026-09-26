@@ -15,7 +15,8 @@ module.exports = grammar({
   // Identifiers follow R5RS/R6RS/R7RS lexical syntax, so they cannot start
   // with a digit. R5RS 7.1.1 also requires a delimiter after a number; this
   // parser does not. 123app123 is therefore a number then a symbol, not one
-  // identifier and not an error. Formal syntax: docs/r5rs.pdf (section 7.1).
+  // identifier and not an error. Formal syntax: R5RS section 7.1
+  // (https://schemers.org/Documents/Standards/R5RS/HTML/).
 
   rules: {
     // Keep the start rule first. Tree-sitter uses the first rule as the start.

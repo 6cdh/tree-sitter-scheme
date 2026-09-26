@@ -5,7 +5,7 @@ const {
 
 // R6RS reader: chapter 4 lexical syntax and datum syntax. The default root
 // grammar.js also selects these rules as part of its R5RS and R6RS union.
-// Formal syntax: docs/r6rs.pdf.
+// Formal syntax: R6RS chapter 4 (http://www.r6rs.org/).
 
 module.exports = grammar({
   name: "scheme",

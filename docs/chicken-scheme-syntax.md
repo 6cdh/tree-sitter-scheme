@@ -44,7 +44,7 @@ manuals do not list which parameters it changes. See
 
 ### Sources
 
-- Inherited formal core: [R7RS-small][r7rs] chapter 7 (also `docs/r7rs.pdf`)
+- Inherited formal core: [R7RS-small][r7rs] chapter 7
 - [Extensions to the R7RS standard][chicken-ext]: CHICKEN read syntax
 - [Deviations from the R7RS standard][chicken-dev]
 - [Module (chicken base)][chicken-base]: `keyword-style`,

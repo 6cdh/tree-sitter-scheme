@@ -4,7 +4,7 @@ const {
 } = require("../../grammar/index");
 
 // R7RS-small reader: sections 7.1.1 tokens and 7.1.2 data, not 7.1.3
-// expressions. Formal syntax: docs/r7rs.pdf.
+// expressions. Formal syntax: R7RS-small (https://small.r7rs.org/).
 
 module.exports = grammar({
   name: "scheme",
