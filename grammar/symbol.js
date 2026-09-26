@@ -35,6 +35,20 @@ const r7rsBareSymbolMembers = [
   seq(/[+-]/, ".", r7rsDotSubsequent, repeat(r7rsSubsequent)),
   seq(".", r7rsDotSubsequent, repeat(r7rsSubsequent)),
 ];
+const r7rsBarSymbol = seq(
+  "|",
+  repeat(
+    choice(
+      /[^\|\\]+/,
+      /\\[xX][0-9a-fA-F]+;/,
+      /\\[abtnr]/,
+      "\\|")),
+  "|",
+);
+// Delimiter-terminated `#:` names. A digit may start the name (`#:1abc`).
+// `|` opens the R7RS bar form.
+const hashColonTokenChar =
+  /[^ \r\n\t\f\v\p{Zs}\p{Zl}\p{Zp}#;"'`,\(\)\{\}\[\]\\\|]/;
 
 const chezBarSymbolPart = seq(
   "|",
@@ -79,15 +93,7 @@ const symbol = {
   r7rs:
     choice(
       ...r7rsBareSymbolMembers,
-      seq(
-        "|",
-        repeat(
-          choice(
-            /[^\|\\]+/,
-            /\\[xX][0-9a-fA-F]+;/,
-            /\\[abtnr]/,
-            "\\|")),
-        "|")),
+      r7rsBarSymbol),
   // Chez accepts any delimited sequence that is not a number as an
   // identifier. A longer spelling such as 0abc wins as one identifier
   // instead of being split after the leading number. In Chez mode, a
@@ -179,8 +185,16 @@ symbol.guileExtended = wrap => seq(
 );
 const keyword = {
   // Marker then name, no atmosphere. The owning grammar supplies the name
-  // node and any alias.
+  // node and any alias. Guile and CHICKEN use this; the default parser
+  // does not.
   hashColon: name => seq("#:", field("name", name)),
+  // Complete `#:name` token. Wrap at the owning grammar. Unlike hashColon,
+  // the name is not a child node.
+  hashColonToken: seq(
+    "#:",
+    choice(
+      repeat1(hashColonTokenChar),
+      r7rsBarSymbol)),
   chickenSuffix: seq(
     chickenBareSymbol(chickenInitial),
     ":",

@@ -3,7 +3,8 @@ const {
   syntax,
 } = require("./grammar/index");
 
-// The default parser accepts the union of R5RS, R6RS, and R7RS reader syntax.
+// The default parser accepts the union of R5RS, R6RS, and R7RS reader syntax,
+// plus Steel Scheme #\u characters and #: keywords.
 // Standard-specific parsers live under dialects/.
 
 module.exports = grammar({
@@ -42,6 +43,7 @@ module.exports = grammar({
       $.number,
       $.character,
       $.string,
+      $.keyword,
       $.symbol,
       $.list,
       $.vector,
@@ -60,41 +62,43 @@ module.exports = grammar({
 
     // R6RS line comments include the common R5RS/R7RS form and also stop at
     // the Unicode line endings recognized by the default whitespace rule.
-    comment: _ => syntax.comment.line.r6rs,
+    comment: _ => token(syntax.comment.line.r6rs),
     block_comment: $ => syntax.comment.block(
       $.block_comment,
       value => prec(100, value),
     ),
     sexp_comment: $ => syntax.comment.datum($._intertoken, $._datum),
-    directive: _ => token(choice(
+    // `#!r6rs` is one leaf. R7RS fold-case keeps `#!` visible.
+    directive: _ => choice(
       syntax.directive.r7rs,
-      syntax.directive.r6rs,
-    )),
+      token(syntax.directive.r6rs),
+    ),
 
-    boolean: _ => token(choice(
+    // Hash-dispatch forms keep `#` / `#\\` / `\\` visible so suffixes compete.
+    boolean: _ => choice(
       syntax.boolean.r7rs,
       syntax.boolean.r6rs,
       syntax.boolean.r5rs,
-    )),
+    ),
     number: _ => token(choice(
       syntax.number.r6rs,
       syntax.number.r7rs,
       syntax.number.r5rs,
     )),
-    character: _ => token(choice(
+    character: _ => choice(
       syntax.character.r6rs,
       syntax.character.r7rs,
       syntax.character.r5rs,
       syntax.character.steelScheme,
-    )),
+    ),
 
     string: $ => syntax.string($.escape_sequence),
 
-    escape_sequence: _ => token(choice(
+    escape_sequence: _ => choice(
       syntax.stringEscape.r6rs,
       syntax.stringEscape.r7rs,
       syntax.stringEscape.r5rs,
-    )),
+    ),
 
     // R6RS identifiers contain the R5RS forms. This intentionally gives the
     // R6RS reading priority where the standards disagree: ->name is one R6RS
@@ -104,6 +108,7 @@ module.exports = grammar({
       syntax.symbol.r7rs,
       syntax.symbol.r5rs,
     )),
+    keyword: _ => token(syntax.keyword.hashColonToken),
 
     // Dot is list punctuation, not a datum. Vectors keep only $._token.
     list: $ => choice(

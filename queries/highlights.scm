@@ -5,6 +5,7 @@
 (datum_label_id) @number
 (character) @constant.builtin
 (boolean) @constant.builtin
+(keyword) @constant
 (symbol) @variable
 (datum_reference) @variable
 

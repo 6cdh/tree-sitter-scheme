@@ -15,6 +15,11 @@
     }
   },
   {
+    "type": "boolean",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "byte_vector",
     "named": true,
     "fields": {},
@@ -44,6 +49,11 @@
         }
       ]
     }
+  },
+  {
+    "type": "character",
+    "named": true,
+    "fields": {}
   },
   {
     "type": "datum_label",
@@ -82,6 +92,10 @@
         },
         {
           "type": "datum_reference",
+          "named": true
+        },
+        {
+          "type": "keyword",
           "named": true
         },
         {
@@ -156,6 +170,16 @@
     }
   },
   {
+    "type": "directive",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "escape_sequence",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "list",
     "named": true,
     "fields": {},
@@ -197,6 +221,10 @@
         },
         {
           "type": "dot",
+          "named": true
+        },
+        {
+          "type": "keyword",
           "named": true
         },
         {
@@ -300,6 +328,10 @@
           "named": true
         },
         {
+          "type": "keyword",
+          "named": true
+        },
+        {
           "type": "list",
           "named": true
         },
@@ -396,6 +428,10 @@
         },
         {
           "type": "directive",
+          "named": true
+        },
+        {
+          "type": "keyword",
           "named": true
         },
         {
@@ -498,6 +534,10 @@
           "named": true
         },
         {
+          "type": "keyword",
+          "named": true
+        },
+        {
           "type": "list",
           "named": true
         },
@@ -597,6 +637,10 @@
           "named": true
         },
         {
+          "type": "keyword",
+          "named": true
+        },
+        {
           "type": "list",
           "named": true
         },
@@ -693,6 +737,10 @@
         },
         {
           "type": "directive",
+          "named": true
+        },
+        {
+          "type": "keyword",
           "named": true
         },
         {
@@ -810,6 +858,10 @@
           "named": true
         },
         {
+          "type": "keyword",
+          "named": true
+        },
+        {
           "type": "list",
           "named": true
         },
@@ -906,6 +958,10 @@
         },
         {
           "type": "directive",
+          "named": true
+        },
+        {
+          "type": "keyword",
           "named": true
         },
         {
@@ -1008,6 +1064,10 @@
           "named": true
         },
         {
+          "type": "keyword",
+          "named": true
+        },
+        {
           "type": "list",
           "named": true
         },
@@ -1104,6 +1164,10 @@
         },
         {
           "type": "directive",
+          "named": true
+        },
+        {
+          "type": "keyword",
           "named": true
         },
         {
@@ -1206,6 +1270,10 @@
           "named": true
         },
         {
+          "type": "keyword",
+          "named": true
+        },
+        {
           "type": "list",
           "named": true
         },
@@ -1305,6 +1373,10 @@
           "named": true
         },
         {
+          "type": "keyword",
+          "named": true
+        },
+        {
           "type": "list",
           "named": true
         },
@@ -1372,6 +1444,10 @@
     "named": false
   },
   {
+    "type": "#!",
+    "named": false
+  },
+  {
     "type": "#'",
     "named": false
   },
@@ -1389,6 +1465,10 @@
   },
   {
     "type": "#;",
+    "named": false
+  },
+  {
+    "type": "#\\",
     "named": false
   },
   {
@@ -1436,20 +1516,16 @@
     "named": false
   },
   {
+    "type": "\\",
+    "named": false
+  },
+  {
     "type": "]",
     "named": false
   },
   {
     "type": "`",
     "named": false
-  },
-  {
-    "type": "boolean",
-    "named": true
-  },
-  {
-    "type": "character",
-    "named": true
   },
   {
     "type": "comment",
@@ -1460,15 +1536,11 @@
     "named": true
   },
   {
-    "type": "directive",
-    "named": true
-  },
-  {
     "type": "dot",
     "named": true
   },
   {
-    "type": "escape_sequence",
+    "type": "keyword",
     "named": true
   },
   {

@@ -51,7 +51,8 @@ before implementation.
 ### Default and dialect parsers
 
 The root `grammar.js` defines the default `scheme` parser. It accepts the
-union of R5RS, R6RS, and R7RS-small reader syntax. When standards assign
+union of R5RS, R6RS, and R7RS-small reader syntax, plus Steel Scheme
+`#\u` characters and `#:` keywords. When standards assign
 different token boundaries to the same text, it uses the R6RS reading.
 Keep the default parser compatible with the existing bindings.
 
