@@ -27,7 +27,7 @@ module.exports = grammar({
     ),
 
     _intertoken: $ => choice(
-      core.whitespace.r5rs,
+      token(core.whitespace.r5rs),
       $.comment,
     ),
 
@@ -45,16 +45,16 @@ module.exports = grammar({
       $.unquote_splicing,
     ),
 
-    comment: _ => syntax.comment.line.r5rs,
+    comment: _ => token(syntax.comment.line.r5rs),
 
     boolean: _ => syntax.boolean.r5rs,
-    number: _ => syntax.number.r5rs,
+    number: _ => token(syntax.number.r5rs),
     character: _ => syntax.character.r5rs,
 
     string: $ => syntax.string($.escape_sequence),
 
-    escape_sequence: _ => syntax.stringEscape.r5rs,
-    symbol: _ => syntax.symbol.r5rs,
+    escape_sequence: _ => token(syntax.stringEscape.r5rs),
+    symbol: _ => token(syntax.symbol.r5rs),
 
     // Dot is list punctuation, not a datum. Vectors keep only $._token.
     list: $ => syntax.list.round(choice($._token, $.dot)),

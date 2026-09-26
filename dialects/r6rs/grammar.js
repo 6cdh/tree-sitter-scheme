@@ -25,7 +25,7 @@ module.exports = grammar({
     ),
 
     _intertoken: $ => choice(
-      core.whitespace.r6rs,
+      token(core.whitespace.r6rs),
       $.comment,
       $.block_comment,
       $.sexp_comment,
@@ -51,22 +51,22 @@ module.exports = grammar({
       $.unsyntax_splicing,
     ),
 
-    comment: _ => syntax.comment.line.r6rs,
+    comment: _ => token(syntax.comment.line.r6rs),
     block_comment: $ => syntax.comment.block(
       $.block_comment,
       value => prec(100, value),
     ),
     sexp_comment: $ => syntax.comment.datum($._intertoken, $._datum),
-    directive: _ => syntax.directive.r6rs,
+    directive: _ => token(syntax.directive.r6rs),
 
     boolean: _ => syntax.boolean.r6rs,
-    number: _ => syntax.number.r6rs,
+    number: _ => token(syntax.number.r6rs),
     character: _ => syntax.character.r6rs,
 
     string: $ => syntax.string($.escape_sequence),
 
     escape_sequence: _ => syntax.stringEscape.r6rs,
-    symbol: _ => syntax.symbol.r6rs,
+    symbol: _ => token(syntax.symbol.r6rs),
 
     list: $ => choice(
       syntax.list.round(choice($._token, $.dot)),

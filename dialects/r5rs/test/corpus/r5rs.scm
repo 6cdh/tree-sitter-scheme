@@ -155,8 +155,7 @@ nondecimal radix requires digits
 
 ---
 (program
-  (ERROR
-    (UNEXPECTED '\n')))
+  (ERROR))
 
 ===
 adjacent number and identifier
