@@ -21,19 +21,24 @@ if (!fs.existsSync(path.join(dir, "grammar.js"))) {
   process.exit(2);
 }
 
+// Spawn the package binary. npm's .bin/tree-sitter.cmd is not a
+// CreateProcess executable, so spawnSync of that shim fails on Windows.
 const localBin = path.join(
   root,
   "node_modules",
-  ".bin",
-  process.platform === "win32" ? "tree-sitter.cmd" : "tree-sitter",
+  "tree-sitter-cli",
+  process.platform === "win32" ? "tree-sitter.exe" : "tree-sitter",
 );
 const bin = fs.existsSync(localBin) ? localBin : "tree-sitter";
 
 function run(args) {
   const result = spawnSync(bin, args, {cwd: dir, stdio: "inherit"});
-  const status = result.status === null ? 1 : result.status;
-  if (status !== 0) {
-    process.exit(status);
+  if (result.error) {
+    console.error(result.error.message);
+    process.exit(1);
+  }
+  if (result.status !== 0) {
+    process.exit(result.status === null ? 1 : result.status);
   }
 }
 
