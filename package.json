@@ -42,7 +42,7 @@
     "node-gyp-build": "^4.8.1"
   },
   "peerDependencies": {
-    "tree-sitter": "^0.21.1"
+    "tree-sitter": "^0.25.1"
   },
   "peerDependenciesMeta": {
     "tree_sitter": {
@@ -51,7 +51,7 @@
   },
   "devDependencies": {
     "prebuildify": "^6.0.1",
-    "tree-sitter-cli": "^0.24.7"
+    "tree-sitter-cli": "^0.26.13"
   },
   "files": [
     "grammar.js",

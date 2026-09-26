@@ -24,4 +24,4 @@ tree-sitter-language = "0.1"
 cc = "1.1.22"
 
 [dev-dependencies]
-tree-sitter = "0.24.7"
+tree-sitter = "0.26.13"

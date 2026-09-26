@@ -11516,7 +11516,7 @@
                       },
                       {
                         "type": "PATTERN",
-                        "value": "[^\\x00-\\x7F\\p{Cc}\\p{Cf}\\p{Cs}\\p{Mc}\\p{Me}\\p{Nd}\\p{Pe}\\p{Pf}\\p{Pi}\\p{Ps}\\p{Zs}\\p{Zl}\\p{Zp}]"
+                        "value": "[^\\x00-\\x7F\\p{Cc}\\p{Cf}\\p{Cn}\\p{Mc}\\p{Me}\\p{Nd}\\p{Pe}\\p{Pf}\\p{Pi}\\p{Ps}\\p{Zs}\\p{Zl}\\p{Zp}]"
                       },
                       {
                         "type": "PATTERN",
@@ -11538,7 +11538,7 @@
                             },
                             {
                               "type": "PATTERN",
-                              "value": "[^\\x00-\\x7F\\p{Cc}\\p{Cf}\\p{Cs}\\p{Mc}\\p{Me}\\p{Nd}\\p{Pe}\\p{Pf}\\p{Pi}\\p{Ps}\\p{Zs}\\p{Zl}\\p{Zp}]"
+                              "value": "[^\\x00-\\x7F\\p{Cc}\\p{Cf}\\p{Cn}\\p{Mc}\\p{Me}\\p{Nd}\\p{Pe}\\p{Pf}\\p{Pi}\\p{Ps}\\p{Zs}\\p{Zl}\\p{Zp}]"
                             },
                             {
                               "type": "PATTERN",
@@ -11592,7 +11592,7 @@
                             },
                             {
                               "type": "PATTERN",
-                              "value": "[^\\x00-\\x7F\\p{Cc}\\p{Cf}\\p{Cs}\\p{Mc}\\p{Me}\\p{Nd}\\p{Pe}\\p{Pf}\\p{Pi}\\p{Ps}\\p{Zs}\\p{Zl}\\p{Zp}]"
+                              "value": "[^\\x00-\\x7F\\p{Cc}\\p{Cf}\\p{Cn}\\p{Mc}\\p{Me}\\p{Nd}\\p{Pe}\\p{Pf}\\p{Pi}\\p{Ps}\\p{Zs}\\p{Zl}\\p{Zp}]"
                             },
                             {
                               "type": "PATTERN",
@@ -12300,5 +12300,6 @@
   "precedences": [],
   "externals": [],
   "inline": [],
-  "supertypes": []
+  "supertypes": [],
+  "reserved": {}
 }

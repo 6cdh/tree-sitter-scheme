@@ -12,7 +12,7 @@ jobs:
       - name: Set up tree sitter
         uses: tree-sitter/setup-action/cli@v1
         with:
-          tree-sitter-ref: v0.24.7
+          tree-sitter-ref: v0.26.13
       - name: wasm build
         run: tree-sitter build -w -o tree-sitter-scheme.wasm
   rust:
@@ -24,6 +24,6 @@ jobs:
       - name: Set up tree sitter
         uses: tree-sitter/setup-action/cli@v1
         with:
-          tree-sitter-ref: v0.24.7
+          tree-sitter-ref: v0.26.13
       - name: rust build
         run: cargo test --all-features

@@ -47,7 +47,7 @@ if (dialect === "chicken") {
   require("./write-chicken-scanner-corpus.js")();
 }
 
-// Always generate in the dialect directory. CLI 0.24 writes src/ in cwd;
+// Always generate in the dialect directory. The CLI writes src/ in cwd;
 // generating from the repository root would overwrite the default parser.
 run(["generate"]);
 
@@ -66,8 +66,8 @@ if (action === "parse") {
     process.exit(2);
   }
   run(["build"]);
-  // CLI 0.24 parse loads src/ from cwd. Keep that as the dialect
-  // directory, but resolve file names from the caller's cwd.
+  // Parse loads src/ from cwd. Keep that as the dialect directory, but
+  // resolve file names from the caller's cwd.
   const parseArgs = extraArgs.map((arg) => {
     if (arg.startsWith("-")) {
       return arg;

@@ -4,12 +4,10 @@ const r6rsHexEscape = /\\x[0-9a-fA-F]+;/;
 
 // R6RS constituent above ASCII. A positive `\p{Po}` class would also
 // match ASCII `'` and `,`, which must stay quote/unquote marks.
-// CLI 0.24 cannot name the unassigned Cn category, so unassigned scalar
-// values still match.
-// TODO: after upgrading past CLI 0.24, add `\p{Cn}` to this class so
-// unassigned scalar values are excluded. CLI 0.25's regex tables include Cn.
+// CLI 0.26.13 rejects `\p{Cs}` (surrogates). Those code points are not
+// valid UTF-8, so they cannot appear as identifier characters.
 const r6rsUnicodeInitial =
-  /[^\x00-\x7F\p{Cc}\p{Cf}\p{Cs}\p{Mc}\p{Me}\p{Nd}\p{Pe}\p{Pf}\p{Pi}\p{Ps}\p{Zs}\p{Zl}\p{Zp}]/;
+  /[^\x00-\x7F\p{Cc}\p{Cf}\p{Cn}\p{Mc}\p{Me}\p{Nd}\p{Pe}\p{Pf}\p{Pi}\p{Ps}\p{Zs}\p{Zl}\p{Zp}]/;
 // Nd, Mc, and Me only. Other Unicode subsequent characters already match
 // as r6rsInitial, and subsequent includes initial.
 const r6rsUnicodeSubsequent = /[\p{Nd}\p{Mc}\p{Me}]/;

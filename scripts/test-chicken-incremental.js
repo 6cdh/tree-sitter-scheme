@@ -1,8 +1,8 @@
 "use strict";
 
 // Compile against the runtime bundled with the installed Node dependency.
-// CLI 0.24 passes some column-dependent reuse cases that fail with the
-// supported 0.21 runtime.
+// The CLI can pass some column-dependent reuse cases that fail with that
+// runtime.
 const {spawnSync} = require("child_process");
 const fs = require("fs");
 const path = require("path");
@@ -26,7 +26,9 @@ try {
   run(process.execPath, ["scripts/run-dialect.js", "chicken", "generate"]);
   const executable = path.join(work, process.platform === "win32" ? "test.exe" : "test");
   run(process.env.CC || "cc", [
-    "-std=c11", "-O1", "-D_POSIX_C_SOURCE=200112L",
+    // 0.25 vendor unicode.h uses le16toh, which glibc exposes under
+    // _DEFAULT_SOURCE, not _POSIX_C_SOURCE.
+    "-std=c11", "-O1", "-D_DEFAULT_SOURCE",
     `-I${path.join(runtime, "include")}`, `-I${path.join(runtime, "src")}`,
     "-Idialects/chicken/src", "dialects/chicken/test/incremental.c",
     "dialects/chicken/src/parser.c", "dialects/chicken/src/scanner.c",
