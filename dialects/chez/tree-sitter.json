@@ -12,7 +12,7 @@
     }
   ],
   "metadata": {
-    "version": "0.24.7-1",
+    "version": "0.25.0",
     "license": "MIT",
     "description": "Tree-sitter parser for Chez Scheme",
     "authors": [
