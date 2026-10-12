@@ -56,7 +56,6 @@
   "files": [
     "grammar.js",
     "grammar/**",
-    "dialects/**",
     "binding.gyp",
     "prebuilds/**",
     "bindings/node/*",
